@@ -6,7 +6,7 @@ Using TMDb api for data - themoviedb.org
 
 changelog
 03052019 - added a season offset capability like episode offset (for talking dead)
-
+04052019 - put all this junk in github :)
 
 todo
 # maybe tinyurl the links in notifications?
@@ -48,10 +48,26 @@ curl --header 'Access-Token: o.vw5MjjLvdjB7pgOguRDRlpgqwLKfxdJi' https://api.pus
 
 curl -u o.vw5MjjLvdjB7pgOguRDRlpgqwLKfxdJi: https://api.pushbullet.com/v2/pushes -d type=note -d title="Alert" -d body="testing this out  :)"
 
-
 '''
 
+
+import requests, os, re, json, logging, sys, errno, shutil, smtplib, argparse, time
+from pathlib import Path
+from requests.auth import HTTPDigestAuth
+from os.path import join, getsize
+from logging import handlers
+from logging.handlers import RotatingFileHandler
+
+# read config file
+try:
+    with open('sort.config.json') as json_data_file:
+        data = json.load(json_data_file)
+except FileNotFoundError as e:
+    log.error("Config file not found")
+    sys.exit (0)
+
 # only allow single instance
+windows = False
 try:
     import socket
     s = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
@@ -61,19 +77,18 @@ except socket.error as e:
     error_code = e.args[0]
     error_string = e.args[1]
     print("Process already running (%d:%s ). Exiting" % ( error_code, error_string))
-    sys.exit (0) 
+    sys.exit (0)
+except AttributeError as ae:
+    print("probably running on windows...")
+    windows = True
 
-import requests, os, re, json, logging, sys, errno, shutil, smtplib, argparse, time
-from pathlib import Path
-from requests.auth import HTTPDigestAuth
-from os.path import join, getsize
-from logging import handlers
-from logging.handlers import RotatingFileHandler
 
 # set logging
 log = logging.getLogger("")
-log.setLevel(logging.INFO)
+log.setLevel(data["config"]["logLevel"])
 LOG_FILE = "/var/log/sort.log"
+if windows:
+    LOG_FILE = "sort.log"
 logformat = logging.Formatter("%(levelname)s %(asctime)s (%(name)s) %(message)s")
 ##DEBUG (debug stuff & extra stuff from urllib3.connectionpool)
 ##INFO (regular sort operations)
@@ -86,7 +101,7 @@ ch = logging.StreamHandler(sys.stdout)
 ch.setFormatter(logformat)
 log.addHandler(ch)
 # file handler
-fh = handlers.RotatingFileHandler("/var/log/sort.log", maxBytes=(1048576*5), backupCount=7)
+fh = handlers.RotatingFileHandler(LOG_FILE, maxBytes=(1048576*5), backupCount=7)
 fh.setFormatter(logformat)
 log.addHandler(fh)
 
@@ -114,11 +129,11 @@ parser.add_argument("save_path", nargs="?", default="")
 args = parser.parse_args()
 
 # notification - optional setting to email/text when a file is moved or sort encounters an error
-notify = True
+notify = data["config"]["notify"]
 # check commandline switch
+#  or windows
 if args.quiet:
     notify = False
-
 # hard-code quiet if you're downloading a bunch of crap...
 #notify = False
 
@@ -126,7 +141,7 @@ if args.debug:
     log.setLevel(logging.DEBUG)
     
 # overwrite - optional setting to overwrite existing files
-overwrite = False
+overwrite = data["config"]["overwrite"]
 overwrite_msg = ""
 # check commandline switch
 if args.overwrite:
@@ -143,7 +158,7 @@ log.debug(s.headers)
     
 if notify:
     # smtp block
-    '''
+    ''' skip in favor of pushbullet
     gmail_address = ""
     gmail_pw = ""
     notify_address = "5178980594@vzwpix.com"
@@ -169,7 +184,7 @@ def send(msg):
             log.debug("trying to hit pushbullet...")
             #s1.post(pburl, '{"type": "note", "title":"Deluge", "body":"why the flip isn''t this working!?"}')
             r1 = s1.post(pburl, data=pbdata)
-            log.debug("pushbullet response = " + str(r1));
+            log.debug("pushbullet response = " + str(r1))
             if r1.status_code == 400:
                 log.debug("error stuff")
                 pbdata = '{"type": "note", "title":"Sort Error", "body":"script hit an error in sending"}'
@@ -183,142 +198,29 @@ def stripChars(string):
     separator = "-"
     return re.sub('[^\w^\'^\(^\)\-_\. &,]', separator, string)
 
+# set folders
+if windows:
+    source_dir = data["folders"]["win_src"]
+    tv_dir = data["folders"]["win_tv"]
+    movie_dir = data["folders"]["win_movie"]
+else:
+    source_dir = data["folders"]["pi_src"]
+    # check for alternate source
+    if args.path:
+        source_dir = args.path
+        log.info("using alternate source folder: " + args.path)
+
+    tv_dir = data["folders"]["pi_tv"]
+    movie_dir = data["folders"]["pi_movie"]
+
+
 log.info("~~~ begin sorting" + overwrite_msg + ": start checking source folder ~~~")
 
-# login w/tvdb api key and get token
-#zj: move this to where it's actually used
-url = "https://api.thetvdb.com/login"
-data = '{"apikey": "F4B2F3D661A7D2CD"}'
-r = s.post(url, data=data)
-tvdbToken = json.loads(r.text)["token"]
-s.headers.update({"Authorization": "Bearer " + tvdbToken})
-
-# TMDb api key
-tmdbapi = "ce283f8ff68c019530c5f5ccf045de2d"
-# if you don't already have one, create an account and register an api key here - https://www.themoviedb.org/settings/api
-
-# set folders
-#source_dir = u"\\\\?\\C:\\Users\\johnsonz2\\Downloads\\mediamfs-test\\source\\"
-#tv_dir = u"\\\\?\\C:\\Users\\johnsonz2\\Downloads\\mediamfs-test\\dest\\tv\\"
-#movie_dir = u"\\\\?\\C:\\Users\\johnsonz2\\Downloads\\mediamfs-test\\dest\\movies\\"
-
-source_dir = "/mnt/storage/torrents/completed/"
-# check for alternate source
-if args.path:
-    source_dir = args.path
-    log.info("using alternate source folder: " + args.path)
-
-tv_dir = "/mnt/plex/plex/tv/"
-movie_dir = "/mnt/plex/plex/movies/"
-
-# declare media file extensions (csv file extensions)
-# if you want to keep subtitle files make sure their extensions are included here (.srt or whatever)
-mediaExts = [
-    ".mp4",
-    ".avi",
-    ".mkv",
-    ".m4v"
-]
-
-# optional cleanup, delete non-media files and remove folders (True/False)
-# setting to True WILL DELETE any remaining files not of the types listed in mediaExts and remove the folder
-# setting to False will leave any files/folders in place
-cleanup = True
-
-# show name replacements (used for both the filename and the folder structure)
-nameReplace = {
-    "DC's Legends of Tomorrow":"Legends of Tomorrow",
-    "DCs Legends of Tomorrow":"Legends of Tomorrow",
-    "Saturday Night Live":"SNL",
-    "Last Week Tonight":"Last Week Tonight",
-    "The Flash 2014":"The Flash",
-    "Marvel's Agents of S H I E L D":"Marvel's Agents of SHIELD",
-    "Marvels Agents of S H I E L D":"Marvel's Agents of SHIELD",
-    "Heartland CA":"Heartland",
-    "Heartland (2007) (CA)":"Heartland",
-    "The Clone Wars":"Star Wars: The Clone Wars",
-    "The Clone Wars -":"Star Wars: The Clone Wars",
-    "Star Wars- The Clone Wars":"Star Wars: The Clone Wars",
-    "Riverdale US":"Riverdale",
-    "Legit":"Legit (2013)",
-    "Greys Anatomy":"Grey's Anatomy",
-    "Will - Grace":"Will & Grace"
-}
-'''
-So, show name replacements...
-Use this when a show can't be found on tvdb with its original file name, or if you just don't like how a show name appears.
-    - omitting the "DC's" from Legends of tomorrow, or the "(2014)" from The Flash
-    - keeping "Last Week Tonight" as just "Last Week Tonight" (tvdb wants to throw "with John Oliver" behind it)
-    - changing "Saturday Night Live" to the more succinct "SNL"
-Note - if you change the file name to something tvdb doesn't recognize, you'll also have to force the show id for the modified name (as is the case for SNL or The Flash)
-You just run it like this - "show name you get":"show name you want"
-'''
-
-# force show id's
-forceId = {
-    "Scandal":"248841",
-    "SNL":"76177",
-    "The Flash":"279121",
-    "Heartland":"82701",
-    "Splitting Up Together":"328595",
-    "Timeless":"311713",
-    "Will & Grace":"71814",
-    "Transformers":"72499",
-    "Marvel's Agents of SHIELD":"263365",
-    "Green Lantern":"251807",
-    "Friends":"79168",
-    "Legends of Tomorrow":"295760"
-}
-'''
-So, forcing show id's...
-Use this when tvdb can't find a show. Usually this will be something like with Scandal, where there's a whole bunch of matching shows...
-If we don't find exactly one match, you'll get a warning in the log. Then just hop onto tvdb and find the specific show you want, and toss its id up there.
-You can think of it as manually linking a show name with a tvdb show id.
-
-'''
-
-# episode number offset
-epOffset = {
-    "SNL":0,
-}
-
-'''
-So, episode number offset...
-Sometimes episode numbers get skewed, like in season 43 of Saturday Night Live...
-The episode with Larry David was uploaded as S43E06, because the uploader was counting the two specials in that season as numbered episodes - it was actually episode 4, not 6.
-Since S43E06 is actually Chance the Rapper, and is listed so on tvdb, that episode winds up misnamed.
-If you download via a service like ShowRSS, once that happens you'll probably get consistently misnumbered episodes for the rest of the season.
-Use this to correct that, increment episode numbers by whatever amount is specified - usage is "show name":# to offset by
-Note - if you force a show name, use your forced name instead of the given name
-'''
-
-# season number offset
-seasonOffset = {
-    "Talking Dead":-1,
-}
-
-'''
-So, season number offset...
-Same thing as with episode numbers, just for season numbers. Thanks, Talking Dead...  ;)
-'''
-
-# verbose output (booleans for all movies and all shows, csv list for individual show names)
-verboseMovies = True
-verboseShows = False
-verboseShows_list = {
-    "The Flash",
-    "Gotham",
-    "Legends of Tomorrow",
-    "Arrow",
-    "Grey's Anatomy"
-}
-'''
-So, verbose output...
-If you have notification messages enabled, these settings can include some extra info about the item being moved.
-The notification messages will include links to TMDb page for movies, and episode descriptions as well as a link for shows.
-The booleans will set ALL movies or ALL tv shows to verbose. If verboseShows = False, then only entries in verboseShows_list will be set to verbose.
-Note - for the list use the *final* name of the tv show, either the official name from TMDb or your own replaced name
-'''
+# check if paths are valid
+try:
+    dir_path(source_dir)
+except NotADirectoryError as e:
+    log.error("Folder doesn't exist: " + str(e))
 
 # crawl dirs and look up stuff
 for root, dirs, files in os.walk(source_dir, topdown=True):
@@ -332,7 +234,20 @@ for root, dirs, files in os.walk(source_dir, topdown=True):
         ext = Path(name).suffix.strip()
         tmdbname = ""
 
-        if ext in mediaExts:
+        if ext in data["mediaExts"]:
+            # login w/tvdb api key and get token
+            #################################################################################################################################
+            url = "https://api.thetvdb.com/login"
+            params = '{"apikey": "F4B2F3D661A7D2CD"}'
+            r = s.post(url, data=params)
+            tvdbToken = json.loads(r.text)["token"]
+            s.headers.update({"Authorization": "Bearer " + tvdbToken})
+
+            # TMDb api key
+            tmdbapi = "ce283f8ff68c019530c5f5ccf045de2d"
+            # if you don't already have one, create an account and register an api key here - https://www.themoviedb.org/settings/api
+            #################################################################################################################################
+
             log.debug("found a media file, " + name)
             mediaFound = True
             deleteFolder = root
@@ -357,7 +272,7 @@ for root, dirs, files in os.walk(source_dir, topdown=True):
                     mediaFound = False
                     msg = ["Sort Error", "Can't parse movie name/year for " + name]
                     continue
-                    log.warn(str(msg))
+                    log.warning(str(msg))
                     send(msg)
                     #zj: maybe split this try/catch up into multiple try's...
 
@@ -413,7 +328,7 @@ for root, dirs, files in os.walk(source_dir, topdown=True):
                         log.debug("movie appears to be '" + movie["title"] + "' - https://www.themoviedb.org/movie/" + str(movie["id"]))
                         # if movie path doesn't exist, create it
                         if not os.path.exists(movie_dir):
-                            log.warn("creating folder " + movie_dir)
+                            log.warning("creating folder " + movie_dir)
                             os.makedirs(movie_dir)
 
                         # rename & move file
@@ -430,15 +345,15 @@ for root, dirs, files in os.walk(source_dir, topdown=True):
                                 url = "https://www.themoviedb.org/movie/" + str(movie["id"])
                                 msg = ["New Movie: " + newname, url]
                                 log.info(str(msg))
-                                if verboseMovies:
+                                if data["verbose"]["movies"]:
                                     msg[1] = overview + "\\r" + url
                                 
                                 send(msg)
                             else:
-                                msg = ["Sort Duplicate", "Skipping folder, file already exists: " + str(destFile)]
+                                msg = ["Sort Duplicate", "Skipping folder, file already exists: " + str(destFile).replace("\\","\\\\")]
                                 mediaFound = False
                                 skipped = True
-                                log.warn(str(msg))
+                                log.warning(str(msg))
                                 send(msg)
                                 continue
                         except OSError as e:
@@ -450,7 +365,7 @@ for root, dirs, files in os.walk(source_dir, topdown=True):
                     else:
                         msg = ["Sort Error", "Can't find movie '" + str(title) + "' in TMDb"]
                         mediaFound = False
-                        log.warn(str(msg))
+                        log.warning(str(msg))
                         send(msg)
                     
             else:
@@ -463,7 +378,7 @@ for root, dirs, files in os.walk(source_dir, topdown=True):
                 try:
                     log.debug("epdata: '" + epdata.group(1) + "'")
                     showname = cleanname.split(epdata.group(1), 1)[0].strip()
-		    # if filename ends with - remove it
+		            # if filename ends with - remove it
                     if showname.endswith("-"):
                         showname = showname[:-1].strip()
 
@@ -491,19 +406,19 @@ for root, dirs, files in os.walk(source_dir, topdown=True):
 
                 # check if using replaced name
                 isReplaced = False
-                for key in nameReplace.keys():
+                for key in data["nameReplace"].keys():
                     if showname.lower() == key.lower():
-                        log.info("replacing show name '" + str(showname) + "' with '" + str(nameReplace.get(key)) + "'")
-                        showname = nameReplace.get(key)
+                        log.info("replacing show name '" + str(showname) + "' with '" + str(data["nameReplace"].get(key)) + "'")
+                        showname = data["nameReplace"].get(key)
                         isReplaced = True
 
                 # check if using forced tvdb id
                 isForced = False
                 showid = None
-                for key in forceId.keys():
+                for key in data["forceId"].keys():
                     if showname.lower() == key.lower():
                         # set showid and tmdbname accordingly
-                        showid = forceId.get(key)
+                        showid = data["forceId"].get(key)
                         tmdbname = key
                         log.info("using show id " + showid + " for " + showname)
                         isForced = True
@@ -517,7 +432,7 @@ for root, dirs, files in os.walk(source_dir, topdown=True):
                     showlist = json.loads(r.text)
                     if "Error" in showlist:
                         msg = ["Sort Error", "Can't find show name for '" + showname + "', try searching on tvdb manually"]
-                        log.warn(str(msg))
+                        log.warning(str(msg))
                         send(msg)
                         mediaFound = False
                         continue
@@ -533,7 +448,7 @@ for root, dirs, files in os.walk(source_dir, topdown=True):
 
                         if showid is None:
                             msg = ["Sort Error", "Can't find exact show name for '" + showname + "' - " + str(len(showlist["data"])) + " shows found, try replacing name or forcing id"]
-                            log.warn(str(msg))
+                            log.warning(str(msg))
                             send(msg)
                             mediaFound = False
                             continue
@@ -546,14 +461,14 @@ for root, dirs, files in os.walk(source_dir, topdown=True):
                         tmdbname = stripChars(showlist["data"][0]["seriesName"])
 
                 # check for episode offset
-                if tmdbname in epOffset:
-                    offset = epOffset[tmdbname]
+                if tmdbname in data["epOffset"]:
+                    offset = data["epOffset"][tmdbname]
                     log.info("offsetting " + tmdbname + " episode numbers by " + str(offset))
                     e_num = int(e_num) + offset
                 
                 # check for season offset
-                if tmdbname in seasonOffset:
-                    offset = seasonOffset[tmdbname]
+                if tmdbname in data["seasonOffset"]:
+                    offset = data["seasonOffset"][tmdbname]
                     log.info("offsetting " + tmdbname + " season numbers by " + str(offset))
                     s_num = int(s_num) + offset
 
@@ -577,9 +492,9 @@ for root, dirs, files in os.walk(source_dir, topdown=True):
                 if r.status_code != 200 or (bool(r2) and r2.status_code != 200):
                     # show isn't queryable, some bit of info is off
                     msg = ["Sort Error", "TVDB returned a " + str(r.status_code) + " for " + str(tmdbname) + ", problem with showid (" + str(showid) + "), season num (" + str(s_num) + "), or episode num (" + str(e_num) + ")"]
-                    log.warn(str(msg))
+                    log.warning(str(msg))
                     send(msg)
-                    #log.warn("tvdb returned a 404 for " + str(tmdbname) + ", problem with showid (" + str(showid) + "), season # (" + str(s_num) + "), or episode # (" + str(e_num) + ")")
+                    #log.warning("tvdb returned a 404 for " + str(tmdbname) + ", problem with showid (" + str(showid) + "), season # (" + str(s_num) + "), or episode # (" + str(e_num) + ")")
                     mediaFound = False
                     continue
                 else:
@@ -620,26 +535,37 @@ for root, dirs, files in os.walk(source_dir, topdown=True):
                     os.makedirs(os.path.join(tv_dir, path))
 
                 # rename & move file
+
                 try:
-                    shutil.move(os.path.join(root, name), os.path.join(tv_dir+path+newname))
-                    url = "https://www.thetvdb.com/?tab=episode&seriesid=" + str(showid) + "&seasonid=" + str(episodeInfo["data"][0]["airedSeasonID"]) + "&id=" + str(episodeInfo["data"][0]["id"])
+                    destFile = os.path.join(tv_dir+path+newname)
+                    moveit = True
+                    if (os.path.exists(destFile) and not overwrite):
+                        moveit = False
 
-                    msg = ["New Episode of " + tmdbname, epdata_str + " - " + episodeName + "\\r" + url]
-                    log.info(str(msg))
+                    print("### moveit = " + str(moveit))
 
-                    # check if show is set to verbose
-                    if verboseShows or (not verboseShows and tmdbname in verboseShows_list):
-                        # get show url on tmdb from tvdb id
-                        tmdburl = "https://api.themoviedb.org/3/find/" + str(showid) + "?api_key=" + tmdbapi + "&language=en-US&external_source=tvdb_id"
-                        r = s.get(tmdburl)
-                        tmdblist = json.loads(r.text)
-                        tmdbid = tmdblist["tv_results"][0]["id"]
+                    if moveit:
+                        shutil.move(os.path.join(root, name), os.path.join(tv_dir+path+newname))
+                        url = "https://www.thetvdb.com/?tab=episode&seriesid=" + str(showid) + "&seasonid=" + str(episodeInfo["data"][0]["airedSeasonID"]) + "&id=" + str(episodeInfo["data"][0]["id"])
 
-                        # get show's TMDb id for notification link
-                        url = "https://www.themoviedb.org/tv/" + str(tmdbid) + "/season/" + str(s_num) + "/episode/" + str(e_num)
-                        overview = str(episodeInfo["data"][0]["overview"])
-                        # note - overview field from tvdb can contain unicode characters - message gets encoded as utf-8 in send function
-                        msg[1] = epdata_str + " - " + episodeName + "\\r" + overview + "\\r" + url
+                        msg = ["New Episode of " + tmdbname, epdata_str + " - " + episodeName + "\\r" + url]
+                        log.info(str(msg))
+
+                        # check if show is set to verbose
+                        if data["verbose"]["tv"] or (not data["verbose"]["tv"] and tmdbname in data["verbose"]["shows_list"]):
+                            # get show url on tmdb from tvdb id
+                            tmdburl = "https://api.themoviedb.org/3/find/" + str(showid) + "?api_key=" + tmdbapi + "&language=en-US&external_source=tvdb_id"
+                            r = s.get(tmdburl)
+                            tmdblist = json.loads(r.text)
+                            tmdbid = tmdblist["tv_results"][0]["id"]
+
+                            # get show's TMDb id for notification link
+                            url = "https://www.themoviedb.org/tv/" + str(tmdbid) + "/season/" + str(s_num) + "/episode/" + str(e_num)
+                            overview = str(episodeInfo["data"][0]["overview"])
+                            # note - overview field from tvdb can contain unicode characters - message gets encoded as utf-8 in send function
+                            msg[1] = epdata_str + " - " + episodeName + "\\r" + overview + "\\r" + url
+                    else:
+                        msg = ["Sort Duplicate", "File already exists: " + str(destFile).replace("\\","\\\\")]
                     
                     send(msg)
                 except OSError as e:
@@ -648,16 +574,18 @@ for root, dirs, files in os.walk(source_dir, topdown=True):
                     send(msg)
                     log.error(e)
                     raise
+        else:
+            log.info("No media found")
 
     if not skipped:
         if not mediaFound:
             log.info("skipping folder, no media identified")
-        elif folder != source_dir and cleanup is True:
+        elif folder != source_dir and data["config"]["cleanup"] is True:
             log.info("cleanup, deleting " + deleteFolder)
             shutil.rmtree(deleteFolder, ignore_errors=True)
 
     # double check source_dir for any empty folders & remove 'em
-    if cleanup is True:
+    if data["config"]["cleanup"] is True:
         for root, dirs, files in os.walk(source_dir, topdown=False):
             if len(dirs) is 0 and len(files) is 0 and root != source_dir:
                 try:

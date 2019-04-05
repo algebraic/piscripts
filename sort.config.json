@@ -1,0 +1,72 @@
+{
+    "config" : {
+        "logLevel":"DEBUG",
+        "notify":true,
+        "overwrite":false,
+        "cleanup":true
+    },
+    "mediaExts" : [
+        ".mp4",
+        ".avi",
+        ".mkv",
+        ".m4v"
+    ],
+    "nameReplace" : {
+        "DC's Legends of Tomorrow":"Legends of Tomorrow",
+        "DCs Legends of Tomorrow":"Legends of Tomorrow",
+        "Saturday Night Live":"SNL",
+        "Last Week Tonight":"Last Week Tonight",
+        "The Flash 2014":"The Flash",
+        "The Flash (2014)":"The Flash",
+        "Marvel's Agents of S H I E L D":"Marvel's Agents of SHIELD",
+        "Marvels Agents of S H I E L D":"Marvel's Agents of SHIELD",
+        "Heartland CA":"Heartland",
+        "Heartland (2007) (CA)":"Heartland",
+        "The Clone Wars":"Star Wars: The Clone Wars",
+        "The Clone Wars -":"Star Wars: The Clone Wars",
+        "Star Wars- The Clone Wars":"Star Wars: The Clone Wars",
+        "Riverdale US":"Riverdale",
+        "Legit":"Legit (2013)",
+        "Greys Anatomy":"Grey's Anatomy",
+        "Will - Grace":"Will & Grace"
+    },
+    "forceId" : {
+        "Scandal":"248841",
+        "SNL":"76177",
+        "The Flash":"279121",
+        "Heartland":"82701",
+        "Splitting Up Together":"328595",
+        "Timeless":"311713",
+        "Will & Grace":"71814",
+        "Transformers":"72499",
+        "Marvel's Agents of SHIELD":"263365",
+        "Green Lantern":"251807",
+        "Friends":"79168",
+        "Legends of Tomorrow":"295760"
+    },
+    "epOffset" : {
+        "SNL":0
+    },
+    "seasonOffset" : {
+        "Talking Dead":-1
+    },
+    "folders" : {
+        "win_src":"\\\\?\\C:\\Users\\johnsonz2\\Downloads\\sort-test\\source\\",
+        "win_tv":"\\\\?\\C:\\Users\\johnsonz2\\Downloads\\sort-test\\dest\\tv\\",
+        "win_movie":"\\\\?\\C:\\Users\\johnsonz2\\Downloads\\sort-test\\dest\\movies\\",
+        "pi_src":"/mnt/storage/torrents/completed/",
+        "pi_tv":"/mnt/plex/plex/tv/",
+        "pi_movie":"/mnt/plex/plex/movies/"
+    },
+    "verbose" : {
+        "movies":true,
+        "tv":false,
+        "shows_list" : [
+            "The Flash",
+            "Gotham",
+            "Legends of Tomorrow",
+            "Arrow",
+            "Grey's Anatomy"
+        ]
+    }
+}
