@@ -50,21 +50,12 @@ curl -u o.vw5MjjLvdjB7pgOguRDRlpgqwLKfxdJi: https://api.pushbullet.com/v2/pushes
 
 '''
 
-
 import requests, os, re, json, logging, sys, errno, shutil, smtplib, argparse, time
 from pathlib import Path
 from requests.auth import HTTPDigestAuth
 from os.path import join, getsize
 from logging import handlers
 from logging.handlers import RotatingFileHandler
-
-# read config file
-try:
-    with open('sort.config.json') as json_data_file:
-        data = json.load(json_data_file)
-except FileNotFoundError as e:
-    log.error("Config file not found")
-    sys.exit (0)
 
 # only allow single instance
 windows = False
@@ -82,10 +73,9 @@ except AttributeError as ae:
     print("probably running on windows...")
     windows = True
 
-
 # set logging
 log = logging.getLogger("")
-log.setLevel(data["config"]["logLevel"])
+log.setLevel("INFO")
 LOG_FILE = "/var/log/sort.log"
 if windows:
     LOG_FILE = "sort.log"
@@ -105,6 +95,50 @@ fh = handlers.RotatingFileHandler(LOG_FILE, maxBytes=(1048576*5), backupCount=7)
 fh.setFormatter(logformat)
 log.addHandler(fh)
 
+# pushbullet stuff
+pbtoken = "o.vw5MjjLvdjB7pgOguRDRlpgqwLKfxdJi"
+pburl = "https://api.pushbullet.com/v2/pushes"
+
+# set some session headers
+s1 = requests.Session() # for pushbullet api calls
+s1.headers.update({"Accept": "application/json", "Content-Type": "application/json", "User-Agent": "Mozilla/5.0"})
+
+# function to send messages
+def send(msg):
+    log.info("send function (" + str(msg) + ")")
+    pbdata = '{"type": "note", "title":"' + msg[0] + '", "body":"' + msg[1] + '"}'
+    s1.headers.update({"Access-Token": pbtoken})
+    try:
+        log.debug("trying to hit pushbullet...")
+        r1 = s1.post(pburl, data=pbdata)
+        log.debug("pushbullet response = " + str(r1))
+        if r1.status_code == 400:
+            log.debug("error stuff")
+            pbdata = '{"type": "note", "title":"Sort Error", "body":"script hit an error in sending"}'
+            r1 = s1.post(pburl, data=pbdata)
+    except Exception as e:
+        log.error("error sending message: " + str(msg) + " - error:" + str(e))
+
+# read config file
+try:
+    with open('/home/vpn/sort.config.json') as json_data_file:
+        data = json.load(json_data_file)
+except FileNotFoundError as e:
+    print("Config file not found, try windows path")
+    try:
+        with open('sort.config.json') as json_data_file:
+            data = json.load(json_data_file)
+    except FileNotFoundError as e:
+        msg = "Sort config file not found, aborting"
+        log.error(msg)
+        send(["Sort Error", msg + "\\n" + time.ctime()])
+        sys.exit (0)
+
+
+# set logging level
+log = logging.getLogger("")
+if (data):
+    log.setLevel(data["config"]["logLevel"])
 
 # function to check if a path is valid
 def dir_path(string):
@@ -148,50 +182,6 @@ if args.overwrite:
     overwrite = True
 if overwrite:
     overwrite_msg = " (OVERWRITE ENABLED)"
-
-# set some session headers
-s = requests.Session() # for tvdb/tmdb api calls
-s1 = requests.Session() # for pushbullet api calls
-s.headers.update({"Accept": "application/json", "Content-Type": "application/json", "User-Agent": "Mozilla/5.0"})
-s1.headers.update({"Accept": "application/json", "Content-Type": "application/json", "User-Agent": "Mozilla/5.0"})
-log.debug(s.headers)
-    
-if notify:
-    # smtp block
-    ''' skip in favor of pushbullet
-    gmail_address = ""
-    gmail_pw = ""
-    notify_address = "5178980594@vzwpix.com"
-    log.debug("setting gmail login for email/text notifications")
-    smtp = smtplib.SMTP('smtp.gmail.com', 587)
-    smtp.ehlo()
-    smtp.starttls()
-    smtp.login(gmail_address, gmail_pw)
-    '''
-    # pushbullet block
-    pbtoken = "o.vw5MjjLvdjB7pgOguRDRlpgqwLKfxdJi"
-    pburl = "https://api.pushbullet.com/v2/pushes"
-
-# function to send messages
-def send(msg):
-    log.debug("send function (" + str(msg) + ")")
-    if notify:
-        log.debug("sending notification")
-        pbdata = '{"type": "note", "title":"' + msg[0] + '", "body":"' + msg[1] + '"}'
-        s1.headers.update({"Access-Token": pbtoken})
-        try:
-            #smtp.sendmail(gmail_address, notify_address, msg.encode("utf-8"))
-            log.debug("trying to hit pushbullet...")
-            #s1.post(pburl, '{"type": "note", "title":"Deluge", "body":"why the flip isn''t this working!?"}')
-            r1 = s1.post(pburl, data=pbdata)
-            log.debug("pushbullet response = " + str(r1))
-            if r1.status_code == 400:
-                log.debug("error stuff")
-                pbdata = '{"type": "note", "title":"Sort Error", "body":"script hit an error in sending"}'
-                r1 = s1.post(pburl, data=pbdata)
-        except Exception as e:
-            log.error("error sending message: " + str(msg) + " - error:" + str(e))
-            #smtp.sendmail(gmail_address, notify_address, str(e))
 
 # function to replace special characters
 def stripChars(string):
@@ -239,6 +229,8 @@ for root, dirs, files in os.walk(source_dir, topdown=True):
             #################################################################################################################################
             url = "https://api.thetvdb.com/login"
             params = '{"apikey": "F4B2F3D661A7D2CD"}'
+            s = requests.Session() # for tvdb/tmdb api calls
+            s.headers.update({"Accept": "application/json", "Content-Type": "application/json", "User-Agent": "Mozilla/5.0"})
             r = s.post(url, data=params)
             tvdbToken = json.loads(r.text)["token"]
             s.headers.update({"Authorization": "Bearer " + tvdbToken})
@@ -346,11 +338,11 @@ for root, dirs, files in os.walk(source_dir, topdown=True):
                                 msg = ["New Movie: " + newname, url]
                                 log.info(str(msg))
                                 if data["verbose"]["movies"]:
-                                    msg[1] = overview + "\\r" + url
+                                    msg[1] = overview + "\\n" + url
                                 
                                 send(msg)
                             else:
-                                msg = ["Sort Duplicate", "Skipping folder, file already exists: " + str(destFile).replace("\\","\\\\")]
+                                msg = ["Sort Duplicate", "Skipping folder, file already exists: \\n" + str(destFile).replace("\\","\\\\")]
                                 mediaFound = False
                                 skipped = True
                                 log.warning(str(msg))
@@ -548,7 +540,7 @@ for root, dirs, files in os.walk(source_dir, topdown=True):
                         shutil.move(os.path.join(root, name), os.path.join(tv_dir+path+newname))
                         url = "https://www.thetvdb.com/?tab=episode&seriesid=" + str(showid) + "&seasonid=" + str(episodeInfo["data"][0]["airedSeasonID"]) + "&id=" + str(episodeInfo["data"][0]["id"])
 
-                        msg = ["New Episode of " + tmdbname, epdata_str + " - " + episodeName + "\\r" + url]
+                        msg = ["New Episode of " + tmdbname, epdata_str + " - " + episodeName + "\\n" + url]
                         log.info(str(msg))
 
                         # check if show is set to verbose
@@ -563,9 +555,9 @@ for root, dirs, files in os.walk(source_dir, topdown=True):
                             url = "https://www.themoviedb.org/tv/" + str(tmdbid) + "/season/" + str(s_num) + "/episode/" + str(e_num)
                             overview = str(episodeInfo["data"][0]["overview"])
                             # note - overview field from tvdb can contain unicode characters - message gets encoded as utf-8 in send function
-                            msg[1] = epdata_str + " - " + episodeName + "\\r" + overview + "\\r" + url
+                            msg[1] = epdata_str + " - " + episodeName + "\\n" + overview + "\\n" + url
                     else:
-                        msg = ["Sort Duplicate", "File already exists: " + str(destFile).replace("\\","\\\\")]
+                        msg = ["Sort Duplicate", "File already exists: \\n" + str(destFile).replace("\\","\\\\")]
                     
                     send(msg)
                 except OSError as e:
