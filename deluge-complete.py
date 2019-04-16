@@ -1,0 +1,11 @@
+#!/usr/bin/env python3
+import sys, argparse
+from subprocess import call
+
+parser = argparse.ArgumentParser()
+parser.add_argument("torrent_id", nargs="?", default="")
+parser.add_argument("torrent_name", nargs="?", default="")
+parser.add_argument("save_path", nargs="?", default="")
+args = parser.parse_args()
+
+call(["sudo", "-u", "pi", "/home/vpn/sort.py"], shell=False)
