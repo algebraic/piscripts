@@ -1,0 +1,229 @@
+<!DOCTYPE html
+  PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+  <title>sort test</title>
+
+  <script src="https://apis.google.com/js/api.js" onload="this.onload=function(){};"
+    onreadystatechange="if (this.readyState === 'complete') this.onload()">
+    </script>
+
+  <script src="https://code.jquery.com/jquery.min.js"></script>
+  <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" rel="stylesheet"
+    integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
+  <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.bundle.min.js"
+    integrity="sha384-xrRywqdh3PHs8keKZN+8zzc5TX0GRTLCcmivcbNJWm2rs5C8PRhcEn3czEjhAO9o"
+    crossorigin="anonymous"></script>
+  <script defer src="https://use.fontawesome.com/releases/v5.8.1/js/all.js"
+    integrity="sha384-g5uSoOSBd7KkhAMlnQILrecXvzst9TdC09/VM+pjDTCM+1il8RHz5fKANTFFb+gQ"
+    crossorigin="anonymous"></script>
+  <link href="toast/jquery.toast.min.css" rel="stylesheet" type="text/css" />
+  <script src="toast/jquery.toast.min.js"></script>
+  <script src="google.js"></script>
+  <script src="index.js"></script>
+  <link href="index.css" rel="stylesheet" type="text/css" />
+  <link href="style.css" rel="stylesheet" type="text/css" />
+  <link href="https://fonts.googleapis.com/css?family=Monoton" rel="stylesheet">
+</head>
+
+<body>
+
+  <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+    <a class="navbar-brand" href="index.html">
+      <span class="title-one">
+        <i class="fas fa-film fa-lg"></i> EyesorT
+      </span>
+      <!-- <span class="title-two">Config</span> -->
+    </a>
+
+    <div class="collapse navbar-collapse" id="navbarSupportedContent">
+      <ul class="navbar-nav mr-auto">
+        <li class="nav-item">
+          <a class="nav-link" href="#" id="basic"><i class="fas fa-cog fa-fw"></i> Basic Config</a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link" href="#" id="force-name"><i class="fas fa-tv fa-fw"></i> Force Name</a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link" href="#" id="force-id"><i class="fas fa-id-card fa-fw"></i> Force Id</a>
+        </li>
+      </ul>
+      <div class="form-group drive-buttons hide mb-0" style="position:relative; right:0px;">
+        <button class="btn btn-primary drive_login" id="drive_login" title="connect Google Drive"><i
+            class="fab fa-google-drive"></i></button>
+        <button class="btn btn-dark drive_logout" id="drive_logout" title="disconnect Google Drive"><i
+            class="fab fa-google-drive"></i> <span id="google-user"></span></button>
+      </div>
+      <br>
+    </div>
+    <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarSupportedContent"
+      aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+      <span class="navbar-toggler-icon"></span>
+    </button>
+  </nav>
+
+  <div class="container section-basic hide">
+    <h4 class="mb-4">Basic Config</h4>
+    <section class="win-folders">
+      <div class="form-group row">
+        <div class="col-sm-10">
+          <h5>Windows Folders<i class="fas fa-question-circle help"></i></h5>
+        </div>
+      </div>
+      <div class="form-group row">
+        <label for="win_src" class="col-sm-2 col-form-label">Source</label>
+        <div class="col-sm-10">
+          <input type="text" class="form-control" id="win_src">
+        </div>
+        <label for="win_tv" class="col-sm-2 col-form-label">TV Folder</label>
+        <div class="col-sm-10">
+          <input type="text" class="form-control" id="win_tv">
+        </div>
+        <label for="win_movie" class="col-sm-2 col-form-label">Movie Folder</label>
+        <div class="col-sm-10">
+          <input type="text" class="form-control" id="win_movie">
+        </div>
+      </div>
+    </section>
+
+    <div class="help-text hide" id="help-win-folders">
+      In a Windows environment, folder paths must be prefixed with '<strong>\\?\</strong>'
+      <br><br>
+      <ul>
+        <li><strong>Source</strong>: source folder of media files to be sorted</li>
+        <li><strong>TV Folder</strong>: folder where TV shows live</li>
+        <li><strong>Movie Folder</strong>: where movies live</li>
+      </ul>
+    </div>  
+    
+    <section class="linux-folders">
+      <div class="form-group row">
+        <div class="col-sm-10">
+          <h5>Linux Folders<i class="fas fa-question-circle help"></i></h5>
+        </div>
+      </div>
+      <div class="form-group row">
+        <label for="pi_src" class="col-sm-2 col-form-label">Source</label>
+        <div class="col-sm-10">
+          <input type="text" class="form-control" id="pi_src">
+        </div>
+        <label for="pi_tv" class="col-sm-2 col-form-label">TV Folder</label>
+        <div class="col-sm-10">
+          <input type="text" class="form-control" id="pi_tv">
+        </div>
+        <label for="pi_movie" class="col-sm-2 col-form-label">Movie Folder</label>
+        <div class="col-sm-10">
+          <input type="text" class="form-control" id="pi_movie">
+        </div>
+      </div>
+    </section>
+
+    <div class="help-text hide" id="help-linux-folders">
+      <ul>
+        <li><strong>Source</strong>: source folder of media files to be sorted</li>
+        <li><strong>TV Folder</strong>: folder where TV shows live</li>
+        <li><strong>Movie Folder</strong>: where movies live</li>
+      </ul>
+    </div>  
+
+    <section class="general">
+      <div class="form-group row">
+          <div class="col-sm-10">
+            <h4>General Settings<i class="fas fa-question-circle help"></i></h4>
+          </div>
+        </div>
+
+      <div class="form-group row">
+        <label for="mediaExts" class="col-sm-2 col-form-label">Media Extensions</label>
+        <div class="col-sm-10">
+          <select class="form-control" id="mediaExts" multiple size="5">
+            <option value=".mp4">mp4</option>
+            <option value=".avi">avi</option>
+            <option value=".mkv">mkv</option>
+            <option value=".m4v">mp4</option>
+            <option value=".srt">srt</option>
+          </select>
+        </div>
+      </div>
+      
+      <div class="form-group row">
+        <label for="logLevel" class="col-sm-2 col-form-label">Log Level</label>
+        <div class="col-sm-10">
+          <select class="form-control" id="logLevel">
+            <option value="DEBUG">DEBUG (all debug junk & api calls)</option>
+            <option value="INFO">INFO (regular sort operations)</option>
+            <option value="WARNING">WARNING (can't find show, episode, movie...)</option>
+            <option value="ERROR">ERROR (just errors)</option>
+            <option value="CRITICAL">CRITICAL (problems with an api or filename confusion)</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-group row">
+        <label for="notify" class="col-sm-2 col-form-label">Notify</label>
+        <div class="col-sm-10 text-left">
+          <input type="checkbox" class="form-control" id="notify">
+        </div>
+      </div>
+      <div class="form-group row">
+        <label for="overwrite" class="col-sm-2 col-form-label">Overwrite</label>
+        <div class="col-sm-10">
+          <input type="checkbox" class="form-control" id="overwrite">
+        </div>
+      </div>
+      <div class="form-group row">
+        <label for="cleanup" class="col-sm-2 col-form-label">Cleanup</label>
+        <div class="col-sm-10">
+          <input type="checkbox" class="form-control" id="cleanup">
+        </div>
+      </div>
+    </section>
+
+    <div class="help-text hide" id="help-general">
+      <ul>
+        <li><strong>Media Extensions</strong>: file types to treat as media</li>
+        <li><strong>Log Level</strong>: the logging level for Eyesort</li>
+        <li><strong>Notify</strong>: send notifications by Pushbullet</li>
+        <li><strong>Overwrite</strong>: run Eyesort in overwrite mode, any existing files will be overwritten</li>
+        <li><strong>Cleanup</strong>: delete all non-media files and remove folders</li>
+      </ul>
+    </div>  
+  </div>
+
+  <div class="container section-force-name hide">
+      <h4 class="mb-4">Force Show Name</h4>
+        <div class="form-group row">
+          <div class="col-sm-10">
+            <table id="nameReplace" class="table table-dark table-striped">
+              <thead class="thead-dark">
+                <tr>
+                  <th>Replace this name</th>
+                  <th>With this name</th>
+                  <th></th>
+                </tr>
+              </thead>
+              <tbody>
+
+              </tbody>
+            </div>
+          </div>
+        </div>
+      </section>
+    </div>
+  
+  <div class="container section-force-id hide">
+    <h4 class="mb-4">Force Show Id</h4>
+    <section class="win-folders">
+      <div class="form-group row">
+        <div class="col-sm-10">
+          <h5>section header<i class="fas fa-question-circle help"></i></h5>
+        </div>
+      </div>
+    </section>
+  </div>
+    
+
+</body>
+
+</html>
