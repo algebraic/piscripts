@@ -95,7 +95,7 @@ function updateSigninStatus(isSignedIn) {
     }
     $buttons.removeClass("hide");
     // zj: set initial section
-    $(".nav-link").eq(3).click();
+    // $(".nav-link").eq(3).click();
 }
 
 // google drive login/logout

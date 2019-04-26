@@ -46,7 +46,7 @@
     </a>
 
     <div class="collapse navbar-collapse" id="navbarSupportedContent">
-      <ul class="navbar-nav mr-auto">
+      <ul class="navbar-nav mr-auto mt-3">
         <li class="nav-item">
           <a class="nav-link" href="#" id="basic"><i class="fas fa-cog fa-fw"></i> Basic Config</a>
         </li>
@@ -82,7 +82,7 @@
   <div class="container section-basic hide">
     <h4 class="mb-4">Basic Config</h4>
 
-    <section class="linux-folders folder">
+    <section class="linux-folders">
       <div class="form-group row">
         <div class="col-sm-10">
           <h5>Linux Folders<i class="fas fa-question-circle help-icon"></i></h5>
@@ -111,8 +111,8 @@
         <li><strong>Movie Folder</strong>: where movies live</li>
       </ul>
     </div>
-    
-    <section class="win-folders folder">
+
+    <section class="win-folders">
       <div class="form-group row">
         <div class="col-sm-10">
           <h5>Windows Folders<i class="fas fa-question-circle help-icon"></i></h5>
@@ -166,7 +166,7 @@
           </table>
         </div>
       </div>
-      
+
       <div class="form-group row">
         <label for="logLevel" class="col-sm-2 col-form-label">Log Level</label>
         <div class="col-sm-10">
@@ -336,7 +336,17 @@
       </div>
     </section>
 
-    
+    <div class="help-text hide" id="help-notifications">
+      <p>Use the Pushbullet API to send notifications when new media files are added.</p>
+      <br>
+      <p>The verbose settings will include the movie or episode overview from <a href="https://www.themoviedb.org/"
+          target="_blank">TMDb</a>.</p>
+      <br>
+      <p>Movies are all or nothing, but TV shows can be either all or just the shows included in the Verbose Shows List.</p>
+      <br>
+      <p>Note - for the list use the <strong>final</strong> name of the tv show, either the official name from TMDb or your own replaced name</p>
+    </div>
+
     <section class="offsets">
       <div class="form-group row">
         <div class="col-sm-10">
@@ -388,6 +398,19 @@
         </div>
       </div>
     </section>
+
+    <div class="help-text hide" id="help-offsets">
+      <p>Sometimes episode or season numbers get skewed. Like in season 43 of Saturday Night Live - the uploader counted
+        two specials in that season as numbered episodes, so subsequent episodes wind up misnamed.</p>
+      <p>Or Talking Dead occastionally gets seasons misnumbered.</p>
+      <br>
+      <p>If you download via a service like ShowRSS, once that happens you'll probably get consistently misnumbered
+        episodes for the rest of the season. Use this to correct that, increment episode/season numbers by whatever
+        amount is specified, positive or negative.</p>
+      <br>
+      <p>Note - if you force a show name, use your forced name instead of the given name</p>
+      <br>
+    </div>
 
   </div>
 

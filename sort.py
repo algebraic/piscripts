@@ -189,18 +189,18 @@ def stripChars(string):
 
 # set folders
 if windows:
-    source_dir = data["config"]["folders"]["win_src"]
-    tv_dir = data["config"]["folders"]["win_tv"]
-    movie_dir = data["config"]["folders"]["win_movie"]
+    source_dir = data["config"]["win_src"]
+    tv_dir = data["config"]["win_tv"]
+    movie_dir = data["config"]["win_movie"]
 else:
-    source_dir = data["config"]["folders"]["pi_src"]
+    source_dir = data["config"]["pi_src"]
     # check for alternate source
     if args.path:
         source_dir = args.path
         log.info("using alternate source folder: " + args.path)
 
-    tv_dir = data["config"]["folders"]["pi_tv"]
-    movie_dir = data["config"]["folders"]["pi_movie"]
+    tv_dir = data["config"]["pi_tv"]
+    movie_dir = data["config"]["pi_movie"]
 
 
 log.info("~~~ begin sorting" + overwrite_msg + ": start checking source folder ~~~")
