@@ -1,7 +1,6 @@
 {
     "config" : {
         "logLevel":"WARNING",
-        "notify":true,
         "overwrite":false,
         "cleanup":true,
         "mediaExts" : [
@@ -50,21 +49,30 @@
         "Friends":"79168",
         "Legends of Tomorrow":"295760"
     },
-    "epOffset" : {
-        "SNL":0
-    },
-    "seasonOffset" : {
-        "Talking Dead":-1
-    },
-    "verbose" : {
-        "movies":true,
-        "tv":false,
-        "shows_list" : [
-            "The Flash",
-            "Gotham",
-            "Legends of Tomorrow",
-            "Arrow",
-            "Grey's Anatomy"
-        ]
+    "advanced" : {
+        "notifications" : {
+            "notify":true,
+            "pburl":"https://api.pushbullet.com/v2/pushes",
+            "pbtoken":"o.vw5MjjLvdjB7pgOguRDRlpgqwLKfxdJi",
+            "verbose-movies":true,
+            "verbose-tv":false,
+            "shows_list" : [
+                "The Flash",
+                "Gotham",
+                "Legends of Tomorrow",
+                "Arrow",
+                "Grey's Anatomy"
+            ]
+        },
+        "offset" : {
+            "episode" : {
+                "SNL":0
+            },
+            "season" : {
+                "Talking Dead":-1
+            }
+        }
+        
     }
+
 }

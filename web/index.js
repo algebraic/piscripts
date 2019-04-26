@@ -1,66 +1,137 @@
 $(function() {
-
   
   /* help content */
-  $("h6").click(function() {
+  $("h5").click(function() {
     var $this = $(this);
     var heading = $this.text();
     var id = $this.parents("section").attr("class");
-
-    $.toast({
-      heading: heading,
-      text: $("#help-" + id).html(),
-      hideAfter: false,
-      showHideTransition: 'slide',
-      icon: 'info',
-      position: 'bottom-right',
-    });
+    var text = $("#help-" + id).html();
+    showHelp(heading, text);
+  });
+  $("h4.help").click(function() {
+    var $this = $(this);
+    var heading = $this.text();
+    var id = $this.parents("section").attr("class");
+    var text = $("#help-" + id).html();
+    showHelp(heading, text);
   });
 
   // rehide everything prior to load
   $(".container, .nav-item").hide();
-    handleClientLoad();
-
-
-/* zj: stuff above here is new and definitely being used */
+  handleClientLoad();
 
   // save
   $("#save").click(function() {
-    
+    // button stuff
+    $(this).prop("disabled", true);
+    $(".save-button .fa-save").addClass("hide");
+
     // check if google drive is connected
     var google = gapi.auth2.getAuthInstance().isSignedIn.get();
     
     var d = new Date();
     var strDate = d.getMonth()+1 + "/" + d.getDate() + "/" + d.getFullYear();
-    var name = "item_" + $("[name=case_name]").val() + " " + strDate;
-    var strName = name;
     
     var data = null;
     // grab data from local storage
     data = JSON.parse(localStorage.getItem("sort_config_data"));
     
     var jsonObj = {
-      "data": [{
-        name: name,
-        form: $("form").serializeFormJSON()
-      }]
+      "config" : {}, 
+      "nameReplace" : {}, 
+      "forceId" : {}, 
+      "advanced" : { 
+        "notifications" : {},
+        "offset" : {
+          "episode" : {},
+          "season" : {}
+        }
+      },
+      "savedfileid":""
     }
-    
-    if (data === null) {
-      // new, just save to local storage
-      console.log("saving to local storage...");
-      data = jsonObj;
-      localStorage.setItem("sort_config_data", JSON.stringify(jsonObj));
-    } else {
-      // existing stuff, append new item
-      data.data.push(jsonObj.data[0]);
-      localStorage.setItem("sort_config_data", JSON.stringify(data));
+
+    console.info("checking for savedfileid");
+    if (data["savedfileid"]) {
+      console.info("savedfileid = " + data["savedfileid"]);
+      jsonObj["savedfileid"] = data["savedfileid"];
     }
-    
+    console.info("jsonObj savedfileid = " + jsonObj["savedfileid"]);
+
+    // config section
+    $("section", ".section-basic").each(function() {
+      var $section = $(this);
+      $("input, select", $section).each(function() {
+        var $input = $(this);
+        var id = $input.attr("id");
+        var type = $input.prop("type");
+        var value = $input.val();
+        if (type == "checkbox") {
+          if ($input.prop("checked")) {
+            value = true;
+          } else {
+            value = false;
+          }
+        }
+        jsonObj["config"][id] = value;
+      });
+    });
+
+    // force name/id sections
+    $("#nameReplace, #forceId").each(function() {
+      var $table = $(this);
+      var id = $table.attr("id");
+      $("tbody tr", $table).each(function() {
+        var $row = $(this);
+        jsonObj[id][$("td:eq(0)", $row).text()] = $("td:eq(1)", $row).text();
+      });
+    });
+    // shows_list & mediaExts, fewer fields so handle separately
+    var showlist = [];
+    $("tbody tr", "table#shows_list").each(function() {
+      var $row = $(this);
+      showlist.push($("td:eq(0)", $row).text());
+    });
+    jsonObj["advanced"]["notifications"]["shows_list"] = showlist;
+    // media extensions
+    var extlist = [];
+    $("tbody tr", "table#mediaExts").each(function() {
+      var $row = $(this);
+      extlist.push($("td:eq(0)", $row).text());
+    });
+    jsonObj["config"]["mediaExts"] = extlist;
+    // offsets
+    $("table", "section.offsets").each(function() {
+      var $table = $(this);
+      $("tbody tr", $table).each(function() {
+        var $row = $(this);
+        jsonObj["advanced"]["offset"][$table.attr("id")][$("td:eq(0)", $row).text()] = $("td:eq(1)", $row).text();
+      });
+    });
+
+    // advanced section
+    $("section", ".section-advanced").each(function() {
+      var $section = $(this);
+      $("input, select, textarea", $section).each(function() {
+        var $input = $(this);
+        var id = $input.attr("id");
+        var type = $input.prop("type");
+        var value = $input.val();
+        if (type == "checkbox") {
+          if ($input.prop("checked")) {
+            value = true;
+          } else {
+            value = false;
+          }
+        }
+        jsonObj["advanced"][$section.attr("class")][id] = value;
+      });
+    });
+
+    localStorage.setItem("sort_config_data1", JSON.stringify(jsonObj));
     if (google) {
       // check if there's a savedfileid
       var existingFile = false;
-      if (data["savedfileid"]) {
+      if (jsonObj["savedfileid"]) {
         //zj: ^^ dying here, see wtf?
         existingFile = true;
       }
@@ -76,17 +147,39 @@ $(function() {
     $("div.section-" + section).show();
   });
   
-  // collapse navbar when clicking off it
-  $(document).on("click", "*", function(event) {
-    var clickover = $(event.target);
-    var $navbar = $(".navbar-collapse");
-    var _opened = $navbar.hasClass("show");
-    var nav = (clickover.hasClass("navbar") || (clickover.parents(".navbar").length > 0));
-    if (!nav) {
-      $navbar.collapse('hide');
+  // add new table row
+  $(document).on("click", ".add-row", function() {
+    var add = true;
+    var $table = $(this).parents("table");
+    $("tr:not(.add-row):last td:not(.delete-row)", $table).each(function() {
+      var $this = $(this);
+      if ($this.index() < 2 && $this.text().length == 0) {
+        add = false;
+        $this.focus();
+        return false;
+      }
+    });
+    if (add) {
+      var row = "<tr><td contenteditable='true'></td><td contenteditable='true'></td><td class='delete-row'><i class='fas fa-times delete'></i></td></tr>";
+      if ($table.hasClass("one-col")) {
+        var row = "<tr><td contenteditable='true'></td><td class='delete-row'><i class='fas fa-times delete'></i></td></tr>";
+      }
+      $table.append(row);
+      $("tr:not(.add-row):last td:first", $table).focus();
     }
   });
 
+  // help toasts
+  function showHelp(heading, text) {
+    $.toast({
+      heading: heading,
+      text: text,
+      hideAfter: false,
+      showHideTransition: 'slide',
+      icon: 'info',
+      position: 'bottom-right',
+    });
+  }
 
   // convert form to json object
   $.fn.serializeFormJSON = function () {
@@ -111,11 +204,12 @@ $(function() {
   
   function getSavedFile() {
     // look for an existing sort.config.json in drive, load if found
-    console.warn("getSavedFile()");
     var savedfileid = null;
+    
     gapi.client.drive.files.list({
-      // 'pageSize': 0, // removed pagesize, dumb
-      'fields': "nextPageToken, files(id, name)"
+      'pageSize': 1000, // removed pagesize, dumb
+      'fields': "nextPageToken, files(id, name)",
+      'q':"name='sort.config.json'"
     }).then(function(response) {
       // search through filenames
       var files = response.result.files;
@@ -155,39 +249,88 @@ $(function() {
                   jsonobj.savedfileid = savedfileid;
                   // drop into local storage
                   localStorage.setItem("sort_config_data", JSON.stringify(jsonobj));
+                  $("#savedfileid").val(savedfileid);
                 }
                 $.each(jsonobj.config, function(key, value) { 
                   var $ctrl = $('#' + key);
-                  // console.info("key = " + key + " -- " + "value = " + value);
-                  switch($ctrl.attr("type")) {
-                    case "radio" : case "checkbox":
-                      if (value) {
-                        $ctrl.attr("checked",true); 
-                      }
-                    break;
-                    default:
-                      $ctrl.val(value);
+                  if ($ctrl.prop("nodeName") == "TABLE") {
+                    $.each(value, function(k, v) {
+                      $("tbody", "#" + $ctrl.attr("id")).append("<tr><td contenteditable='true'>" + v + "</td></tr>");
+                    });
+                  } else {
+                    switch($ctrl.attr("type")) {
+                      case "radio" : case "checkbox":
+                        if (value) {
+                          $ctrl.attr("checked",true); 
+                        }
+                      break;
+                      default:
+                        $ctrl.val(value);
+                    }
                   }
                 });
                 $.each(jsonobj.nameReplace, function(key, value) {
                   $("#nameReplace tbody").append("<tr><td contenteditable='true'>" + key + "</td><td contenteditable='true'>" + value + "</td></tr>");
                 });
+                $.each(jsonobj.forceId, function(key, value) {
+                  $("#forceId tbody").append("<tr><td contenteditable='true'>" + key + "</td><td contenteditable='true'>" + value + "</td></tr>");
+                });
+                $.each(jsonobj.advanced.notifications, function(key, value) {
+                  var $ctrl = $('#' + key);
+                  if ($ctrl.prop("nodeName") == "TABLE") {
+                    $.each(value, function(k, v) {
+                      $("tbody", $ctrl).append("<tr><td contenteditable='true'>" + v + "</td></tr>");
+                    });
+                  } else {
+                    switch($ctrl.attr("type")) {
+                      case "radio" : case "checkbox":
+                        if (value) {
+                          $ctrl.attr("checked",true); 
+                        }
+                        break;
+                      default:
+                        $ctrl.val(value);
+                    }
+                  }
+                  $ctrl.val(value);
+                });
+                console.info("trying to do offsets...");
+                console.info(jsonobj.advanced.offset);
+                $.each(jsonobj.advanced.offset, function(key, value) {
+                  console.info("key = " + key + " -- value = " + value);
+                  var $ctrl = $('#' + key);
+                  $.each(value, function(k, v) {
+                    $("tbody", $ctrl).append("<tr><td contenteditable='true'>" + k + "</td><td contenteditable='true'>" + v + "</td></tr>");
+                  });
+                });
+
+
+                // init tablesorter
+                $("table").tablesorter({ sortList: [[0,0]] });
+
                 // insert delete buttons
-                $("tr").each(function() {
-                  $("td:eq(1)", this).after("<td><i class='fas fa-times delete'></i></td>");
+                $("table").each(function() {
+                  var $table = $(this);
+                  var id = $table.attr("id");
+                  var num = 1;
+                  if (id == "shows_list" || id == "mediaExts") {
+                    num = 0;
+                  }
+                  $("tr", $table).not(".add-row").each(function() {
+                    $("td:eq(" + num + ")", this).after("<td class='delete-row'><i class='fas fa-times delete'></i></td>");
+                  });
                 });
                 $(document).on("click", ".delete", function() {
-                  console.info("delete");
                   $(this).parents("tr").remove();
                 });
 
                 // table editing stuff
-                $("td").keypress(function(e) {
+                $(document).on("keypress", "td", function(e) {
                   if (e.which == 13) {
                     e.preventDefault();
                     $(this).blur();
                   }
-                }).blur(function(e) {
+                }).on("blur", "td", function(e) {
                   e.currentTarget.innerText = $.trim(e.currentTarget.innerText);
                 });
                 
@@ -197,6 +340,14 @@ $(function() {
       } else {
         // no file in google drive
         console.log("no file exists in drive");
+        $.toast({
+          heading: "Config file not found",
+          text: "No config file exists in Google Drive yet",
+          hideAfter: false,
+          showHideTransition: 'slide',
+          icon: 'warning',
+          position: 'bottom-right',
+        });
       }
 
     });
@@ -207,7 +358,7 @@ $(function() {
     console.log("saving to google...");
     
     // construct json object
-    var jsonObj = JSON.parse(localStorage.getItem("sort_config_data"));
+    var jsonObj = JSON.parse(localStorage.getItem("sort_config_data1"));
     
     var jsonFile = new Blob([JSON.stringify(jsonObj)], {type : "text/json"});
     var boundary = '-------314159265358979323846';
@@ -251,8 +402,16 @@ $(function() {
             'body': multipartRequestBody});
         
           callback = function(file) {
-            console.info('yay, callback');
             console.log(file)
+              $.toast({
+                heading: "Config Saved",
+                text: "Your configuration file has been saved to Google Drive",
+                showHideTransition: 'slide',
+                icon: 'success',
+                position: 'bottom-right',
+              });
+              $("#save").prop("disabled", false);
+            // window.location.reload();
           };
             
           request.execute(callback);

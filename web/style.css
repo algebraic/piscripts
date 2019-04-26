@@ -1,7 +1,12 @@
 .navbar-dark.bg-dark {
-  background: rgb(32, 34, 36) !important;
+  background: #313536 !important;
+  
 }
 
+table {
+    width: auto !important;
+    min-width: 40px !important;
+}
 .hide {
   display: none;
 }
@@ -41,22 +46,24 @@ input[type='checkbox'] {
 }
 
 section {
-    border-left: 6px solid #092d2d;
+    border-left: 6px solid #5a6268;
     padding-left: 12px;
     margin-bottom: 24px;
 }
 
-.help {
+.help-icon {
     color: #666666;
     margin-left: 6px;
     cursor: pointer;
 }
 
-.table td, .table th {
-    padding: .4rem;
-}
-td:first-child {
+tbody tr td:first-child {
     border-right: 1px solid #666666;
+    min-width: 100px;
+}
+tfoot tr td {
+    border: none;
+    text-align: center;
 }
 thead tr th{
     border-bottom: 1px solid #666666 !important;
@@ -64,7 +71,47 @@ thead tr th{
 .delete {
     position: relative;
     top: 2px;
-    right: -22px;
+    left: -2px;
     cursor: pointer;
     color: silver;
+}
+.add-row {
+    cursor: pointer;
+    color: silver;
+}
+
+.save-button {
+    position: relative;
+    top: 2px;
+}
+
+td:nth-child(3) {
+    text-align: right;
+}
+.one-col td:nth-child(2) {
+    width: 10px;
+    text-align: right;
+    border: none;
+}
+.one-col tbody tr td:first-child {
+    border-right: none;
+}
+
+input, select {
+    background-color: black !important;
+    color: #c1c1c1 !important;
+}
+
+select option:hover, 
+select option:focus, 
+select option:active, 
+select option:checked
+{
+    background: linear-gradient(silver,silver);
+    color: white !important;
+    background-color: silver !important; /* for IE */
+}
+
+section.folder {
+    background-image: "img/folder.png";
 }

@@ -95,9 +95,24 @@ fh = handlers.RotatingFileHandler(LOG_FILE, maxBytes=(1048576*5), backupCount=7)
 fh.setFormatter(logformat)
 log.addHandler(fh)
 
+# read config file
+try:
+    with open('/home/vpn/sort.config.json') as json_data_file:
+        data = json.load(json_data_file)
+except FileNotFoundError as e:
+    print("Config file not found, try windows path")
+    try:
+        with open('sort.config.json') as json_data_file:
+            data = json.load(json_data_file)
+    except FileNotFoundError as e:
+        msg = "Sort config file not found, aborting"
+        log.error(msg)
+        #send(["Sort Error", msg + "\\n" + time.ctime()])
+        sys.exit (0)
+
 # pushbullet stuff
-pbtoken = "o.vw5MjjLvdjB7pgOguRDRlpgqwLKfxdJi"
-pburl = "https://api.pushbullet.com/v2/pushes"
+pbtoken = data["advanced"]["notifications"]["pbtoken"] #o.vw5MjjLvdjB7pgOguRDRlpgqwLKfxdJi"
+pburl = data["advanced"]["notifications"]["pburl"] #"https://api.pushbullet.com/v2/pushes"
 
 # set some session headers
 s1 = requests.Session() # for pushbullet api calls
@@ -118,22 +133,6 @@ def send(msg):
             r1 = s1.post(pburl, data=pbdata)
     except Exception as e:
         log.error("error sending message: " + str(msg) + " - error:" + str(e))
-
-# read config file
-try:
-    with open('/home/vpn/sort.config.json') as json_data_file:
-        data = json.load(json_data_file)
-except FileNotFoundError as e:
-    print("Config file not found, try windows path")
-    try:
-        with open('sort.config.json') as json_data_file:
-            data = json.load(json_data_file)
-    except FileNotFoundError as e:
-        msg = "Sort config file not found, aborting"
-        log.error(msg)
-        send(["Sort Error", msg + "\\n" + time.ctime()])
-        sys.exit (0)
-
 
 # set logging level
 log = logging.getLogger("")
@@ -163,7 +162,7 @@ parser.add_argument("save_path", nargs="?", default="")
 args = parser.parse_args()
 
 # notification - optional setting to email/text when a file is moved or sort encounters an error
-notify = data["config"]["notify"]
+notify = data["advanced"]["notifications"]["notify"]
 # check commandline switch
 #  or windows
 if args.quiet:
@@ -336,7 +335,7 @@ for root, dirs, files in os.walk(source_dir, topdown=True):
                                 url = "https://www.themoviedb.org/movie/" + str(movie["id"])
                                 msg = ["New Movie: " + newname, url]
                                 log.info(str(msg))
-                                if data["verbose"]["movies"]:
+                                if data["advanced"]["notifications"]["verbose-movies"]:
                                     msg[1] = overview + "\\n" + url
                                 
                                 send(msg)
@@ -452,14 +451,14 @@ for root, dirs, files in os.walk(source_dir, topdown=True):
                         tmdbname = stripChars(showlist["data"][0]["seriesName"])
 
                 # check for episode offset
-                if tmdbname in data["epOffset"]:
-                    offset = data["epOffset"][tmdbname]
+                if tmdbname in data["advanced"]["offset"]["episode"]:
+                    offset = data["advanced"]["offset"]["episode"][tmdbname]
                     log.info("offsetting " + tmdbname + " episode numbers by " + str(offset))
                     e_num = int(e_num) + offset
                 
                 # check for season offset
-                if tmdbname in data["seasonOffset"]:
-                    offset = data["seasonOffset"][tmdbname]
+                if tmdbname in data["advanced"]["offset"]["season"]:
+                    offset = data["advanced"]["offset"]["season"][tmdbname]
                     log.info("offsetting " + tmdbname + " season numbers by " + str(offset))
                     s_num = int(s_num) + offset
 
@@ -543,7 +542,8 @@ for root, dirs, files in os.walk(source_dir, topdown=True):
                         log.info(str(msg))
 
                         # check if show is set to verbose
-                        if data["verbose"]["tv"] or (not data["verbose"]["tv"] and tmdbname in data["verbose"]["shows_list"]):
+                        verbosetv = data["advanced"]["notifications"]["verbose-tv"]
+                        if verbosetv or (not verbosetv and tmdbname in data["advanced"]["notifications"]["shows_list"]):
                             # get show url on tmdb from tvdb id
                             tmdburl = "https://api.themoviedb.org/3/find/" + str(showid) + "?api_key=" + tmdbapi + "&language=en-US&external_source=tvdb_id"
                             r = s.get(tmdburl)

@@ -1,14 +1,19 @@
-<!DOCTYPE html
-  PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<!DOCTYPE html>
 <html xmlns="http://www.w3.org/1999/xhtml">
 
 <head>
   <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
-  <title>sort test</title>
+  <title>Eyesort</title>
 
-  <script src="https://apis.google.com/js/api.js" onload="this.onload=function(){};"
-    onreadystatechange="if (this.readyState === 'complete') this.onload()">
-    </script>
+  <link rel="apple-touch-icon" sizes="180x180" href="img/fav/apple-touch-icon.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="img/fav/favicon-32x32.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="img/fav/favicon-16x16.png">
+  <link rel="manifest" href="img/fav/site.webmanifest">
+  <link rel="mask-icon" href="img/fav/safari-pinned-tab.svg" color="#5bbad5">
+  <meta name="msapplication-TileColor" content="#00aba9">
+  <meta name="theme-color" content="#00aba9">
+
+  <script src="https://apis.google.com/js/api.js" onload="this.onload=function(){};"></script>
 
   <script src="https://code.jquery.com/jquery.min.js"></script>
   <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" rel="stylesheet"
@@ -23,6 +28,8 @@
   <script src="toast/jquery.toast.min.js"></script>
   <script src="google.js"></script>
   <script src="index.js"></script>
+  <link href="theme.bootstrap_4.css" rel="stylesheet" type="text/css" />
+  <script src="jquery.tablesorter.js"></script>
   <link href="index.css" rel="stylesheet" type="text/css" />
   <link href="style.css" rel="stylesheet" type="text/css" />
   <link href="https://fonts.googleapis.com/css?family=Monoton" rel="stylesheet">
@@ -33,9 +40,9 @@
   <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
     <a class="navbar-brand" href="index.html">
       <span class="title-one">
-        <i class="fas fa-film fa-lg"></i> EyesorT
+        <!-- <i class="fas fa-film fa-lg"></i>  -->
+        <img src="img/eyesort.jpg" style="height:50px; width:50px"> EyesorT
       </span>
-      <!-- <span class="title-two">Config</span> -->
     </a>
 
     <div class="collapse navbar-collapse" id="navbarSupportedContent">
@@ -49,11 +56,19 @@
         <li class="nav-item">
           <a class="nav-link" href="#" id="force-id"><i class="fas fa-id-card fa-fw"></i> Force Id</a>
         </li>
+        <li class="nav-item">
+          <a class="nav-link" href="#" id="advanced"><i class="fas fa-biohazard fa-fw"></i> Advanced</a>
+        </li>
+        <li class="nav-item mb-4 save-button">
+          <button type="button" id="save" class="btn btn-sm btn-outline-secondary save-button ml-lg-2">
+            <i class="fas fa-save"></i>
+            <i class="fa fa-spinner fa-spin hide"></i> Save</button>
+        </li>
       </ul>
       <div class="form-group drive-buttons hide mb-0" style="position:relative; right:0px;">
         <button class="btn btn-primary drive_login" id="drive_login" title="connect Google Drive"><i
             class="fab fa-google-drive"></i></button>
-        <button class="btn btn-dark drive_logout" id="drive_logout" title="disconnect Google Drive"><i
+        <button class="btn btn-secondary drive_logout" id="drive_logout" title="disconnect Google Drive"><i
             class="fab fa-google-drive"></i> <span id="google-user"></span></button>
       </div>
       <br>
@@ -66,10 +81,41 @@
 
   <div class="container section-basic hide">
     <h4 class="mb-4">Basic Config</h4>
-    <section class="win-folders">
+
+    <section class="linux-folders folder">
       <div class="form-group row">
         <div class="col-sm-10">
-          <h5>Windows Folders<i class="fas fa-question-circle help"></i></h5>
+          <h5>Linux Folders<i class="fas fa-question-circle help-icon"></i></h5>
+        </div>
+      </div>
+      <div class="form-group row">
+        <label for="pi_src" class="col-sm-2 col-form-label">Source</label>
+        <div class="col-sm-10">
+          <input type="text" class="form-control" id="pi_src">
+        </div>
+        <label for="pi_tv" class="col-sm-2 col-form-label">TV Folder</label>
+        <div class="col-sm-10">
+          <input type="text" class="form-control" id="pi_tv">
+        </div>
+        <label for="pi_movie" class="col-sm-2 col-form-label">Movie Folder</label>
+        <div class="col-sm-10">
+          <input type="text" class="form-control" id="pi_movie">
+        </div>
+      </div>
+    </section>
+
+    <div class="help-text hide" id="help-linux-folders">
+      <ul>
+        <li><strong>Source</strong>: source folder of media files to be sorted</li>
+        <li><strong>TV Folder</strong>: folder where TV shows live</li>
+        <li><strong>Movie Folder</strong>: where movies live</li>
+      </ul>
+    </div>
+    
+    <section class="win-folders folder">
+      <div class="form-group row">
+        <div class="col-sm-10">
+          <h5>Windows Folders<i class="fas fa-question-circle help-icon"></i></h5>
         </div>
       </div>
       <div class="form-group row">
@@ -96,55 +142,28 @@
         <li><strong>TV Folder</strong>: folder where TV shows live</li>
         <li><strong>Movie Folder</strong>: where movies live</li>
       </ul>
-    </div>  
-    
-    <section class="linux-folders">
-      <div class="form-group row">
-        <div class="col-sm-10">
-          <h5>Linux Folders<i class="fas fa-question-circle help"></i></h5>
-        </div>
-      </div>
-      <div class="form-group row">
-        <label for="pi_src" class="col-sm-2 col-form-label">Source</label>
-        <div class="col-sm-10">
-          <input type="text" class="form-control" id="pi_src">
-        </div>
-        <label for="pi_tv" class="col-sm-2 col-form-label">TV Folder</label>
-        <div class="col-sm-10">
-          <input type="text" class="form-control" id="pi_tv">
-        </div>
-        <label for="pi_movie" class="col-sm-2 col-form-label">Movie Folder</label>
-        <div class="col-sm-10">
-          <input type="text" class="form-control" id="pi_movie">
-        </div>
-      </div>
-    </section>
-
-    <div class="help-text hide" id="help-linux-folders">
-      <ul>
-        <li><strong>Source</strong>: source folder of media files to be sorted</li>
-        <li><strong>TV Folder</strong>: folder where TV shows live</li>
-        <li><strong>Movie Folder</strong>: where movies live</li>
-      </ul>
-    </div>  
+    </div>
 
     <section class="general">
       <div class="form-group row">
-          <div class="col-sm-10">
-            <h4>General Settings<i class="fas fa-question-circle help"></i></h4>
-          </div>
+        <div class="col-sm-10">
+          <h5>General Settings<i class="fas fa-question-circle help-icon"></i></h5>
         </div>
+      </div>
 
       <div class="form-group row">
-        <label for="mediaExts" class="col-sm-2 col-form-label">Media Extensions</label>
-        <div class="col-sm-10">
-          <select class="form-control" id="mediaExts" multiple size="5">
-            <option value=".mp4">mp4</option>
-            <option value=".avi">avi</option>
-            <option value=".mkv">mkv</option>
-            <option value=".m4v">mp4</option>
-            <option value=".srt">srt</option>
-          </select>
+        <label for="mediaExts" class="col-sm-2 col-form-label">Media Extension List</label>
+        <div class="col-sm-10 text-left">
+          <table id="mediaExts" class="table table-sm table-dark table-striped one-col">
+            <tbody></tbody>
+            <tfoot>
+              <tr class="add-row table-active">
+                <td colspan=2>
+                  <i class="fas fa-plus-circle"></i>
+                </td>
+              </tr>
+            </tfoot>
+          </table>
         </div>
       </div>
       
@@ -158,12 +177,6 @@
             <option value="ERROR">ERROR (just errors)</option>
             <option value="CRITICAL">CRITICAL (problems with an api or filename confusion)</option>
           </select>
-        </div>
-      </div>
-      <div class="form-group row">
-        <label for="notify" class="col-sm-2 col-form-label">Notify</label>
-        <div class="col-sm-10 text-left">
-          <input type="checkbox" class="form-control" id="notify">
         </div>
       </div>
       <div class="form-group row">
@@ -184,45 +197,199 @@
       <ul>
         <li><strong>Media Extensions</strong>: file types to treat as media</li>
         <li><strong>Log Level</strong>: the logging level for Eyesort</li>
-        <li><strong>Notify</strong>: send notifications by Pushbullet</li>
         <li><strong>Overwrite</strong>: run Eyesort in overwrite mode, any existing files will be overwritten</li>
         <li><strong>Cleanup</strong>: delete all non-media files and remove folders</li>
       </ul>
-    </div>  
+    </div>
   </div>
 
   <div class="container section-force-name hide">
-      <h4 class="mb-4">Force Show Name</h4>
-        <div class="form-group row">
-          <div class="col-sm-10">
-            <table id="nameReplace" class="table table-dark table-striped">
-              <thead class="thead-dark">
-                <tr>
-                  <th>Replace this name</th>
-                  <th>With this name</th>
-                  <th></th>
-                </tr>
-              </thead>
-              <tbody>
-
-              </tbody>
-            </div>
-          </div>
-        </div>
-      </section>
-    </div>
-  
-  <div class="container section-force-id hide">
-    <h4 class="mb-4">Force Show Id</h4>
-    <section class="win-folders">
+    <section class="force-name">
+      <h4 class="mb-4 help">Force Show Name<i class="fas fa-question-circle help-icon"></i></h4>
       <div class="form-group row">
         <div class="col-sm-10">
-          <h5>section header<i class="fas fa-question-circle help"></i></h5>
+          <table id="nameReplace" class="table table-sm table-dark table-striped">
+            <thead class="thead-dark">
+              <tr>
+                <th>Replace this name</th>
+                <th colspan=2>With this name</th>
+              </tr>
+            </thead>
+            <tbody></tbody>
+            <tfoot>
+              <tr class="add-row table-active">
+                <td colspan=3>
+                  <i class="fas fa-plus-circle"></i>
+                </td>
+              </tr>
+            </tfoot>
+          </table>
         </div>
       </div>
     </section>
   </div>
+
+  <div class="help-text hide" id="help-force-name">
+    <p>Use this when a show can't be found on tvdb with its original file name, or if you just don't like how a show
+      name appears.</p>
+    <br>
+    <ul>
+      <li>omitting the "DC's" from Legends of tomorrow, or the "(2014)" from The Flash</li>
+      <li>keeping "Last Week Tonight" as just "Last Week Tonight" (tvdb wants to throw "with John Oliver" behind it)
+      </li>
+      <li>changing "Saturday Night Live" to the more succinct "SNL"</li>
+    </ul>
+    <br>
+    <p>Note - if you change the file name to something tvdb doesn't recognize, you'll also have to force the show id for
+      the modified name (as is the case for SNL or The Flash).</p>
+  </div>
+
+  <div class="container section-force-id hide">
+    <section class="force-id">
+      <h4 class="mb-4 help">Force Show ID<i class="fas fa-question-circle help-icon"></i></h4>
+      <div class="form-group row">
+        <div class="col-sm-10">
+          <table id="forceId" class="table table-sm table-dark table-striped">
+            <thead class="thead-dark">
+              <tr>
+                <th>For this show</th>
+                <th colspan=2>Use this id</th>
+              </tr>
+            </thead>
+            <tbody></tbody>
+            <tfoot>
+              <tr class="add-row table-active">
+                <td colspan=3>
+                  <i class="fas fa-plus-circle"></i>
+                </td>
+              </tr>
+            </tfoot>
+          </table>
+        </div>
+      </div>
+    </section>
+  </div>
+
+  <div class="help-text hide" id="help-force-id">
+    <p>Use this when tvdb can't find a show.</p>
+    <br>
+    <p>Usually this will be something like with Scandal, where there's a whole bunch of matching shows... If we don't
+      find exactly one match, you'll get a warning in the log. Then just hop onto tvdb and find the specific show you
+      want, and toss its id up there.
+      You can think of it as manually linking a show name with a tvdb show id.</p>
+  </div>
+
+  <div class="container section-advanced hide">
+    <h4 class="mb-4">Advanced Settings</h4>
+
+    <section class="notifications">
+      <div class="form-group row">
+        <div class="col-sm-10">
+          <h5>Pushbullet Notifications<i class="fas fa-question-circle help-icon"></i></h5>
+        </div>
+      </div>
+
+      <div class="form-group row">
+        <label for="notify" class="col-sm-2 col-form-label">Enable Notifications</label>
+        <div class="col-sm-10 text-left">
+          <input type="checkbox" class="form-control" id="notify">
+        </div>
+      </div>
+      <div class="form-group row">
+        <label for="overwrite" class="col-sm-2 col-form-label">Pushbullet URL</label>
+        <div class="col-sm-10">
+          <input type="text" class="form-control" id="pburl">
+        </div>
+      </div>
+      <div class="form-group row">
+        <label for="overwrite" class="col-sm-2 col-form-label">Pushbullet Token</label>
+        <div class="col-sm-10">
+          <input type="text" class="form-control" id="pbtoken">
+        </div>
+      </div>
+      <div class="form-group row">
+        <label for="notify" class="col-sm-2 col-form-label">Verbose Movies</label>
+        <div class="col-sm-10 text-left">
+          <input type="checkbox" class="form-control" id="verbose-movies">
+        </div>
+      </div>
+      <div class="form-group row">
+        <label for="notify" class="col-sm-2 col-form-label">Verbose TV Shows</label>
+        <div class="col-sm-10 text-left">
+          <input type="checkbox" class="form-control" id="verbose-tv">
+        </div>
+      </div>
+      <div class="form-group row">
+        <label for="shows_list" class="col-sm-2 col-form-label">Verbose Shows List</label>
+        <div class="col-sm-10 text-left">
+          <table id="shows_list" class="table table-sm table-dark table-striped one-col">
+            <tbody></tbody>
+            <tfoot>
+              <tr class="add-row table-active">
+                <td colspan=2>
+                  <i class="fas fa-plus-circle"></i>
+                </td>
+              </tr>
+            </tfoot>
+          </table>
+        </div>
+      </div>
+    </section>
+
     
+    <section class="offsets">
+      <div class="form-group row">
+        <div class="col-sm-10">
+          <h5>Offsets<i class="fas fa-question-circle help-icon"></i></h5>
+        </div>
+      </div>
+
+      <div class="form-group row">
+        <label for="episode" class="col-sm-2 col-form-label">Episode</label>
+        <div class="col-sm-10 text-left">
+          <table id="episode" class="table table-sm table-dark table-striped">
+            <thead class="thead-dark">
+              <tr>
+                <th>For this show</th>
+                <th colspan=2>Offset by</th>
+              </tr>
+            </thead>
+            <tbody></tbody>
+            <tfoot>
+              <tr class="add-row table-active">
+                <td colspan=3>
+                  <i class="fas fa-plus-circle"></i>
+                </td>
+              </tr>
+            </tfoot>
+          </table>
+        </div>
+      </div>
+
+      <div class="form-group row">
+        <label for="season" class="col-sm-2 col-form-label">Season</label>
+        <div class="col-sm-10 text-left">
+          <table id="season" class="table table-sm table-dark table-striped">
+            <thead class="thead-dark">
+              <tr>
+                <th>For this show</th>
+                <th colspan=2>Offset by</th>
+              </tr>
+            </thead>
+            <tbody></tbody>
+            <tfoot>
+              <tr class="add-row table-active">
+                <td colspan=3>
+                  <i class="fas fa-plus-circle"></i>
+                </td>
+              </tr>
+            </tfoot>
+          </table>
+        </div>
+      </div>
+    </section>
+
+  </div>
 
 </body>
 
