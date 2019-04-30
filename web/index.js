@@ -26,6 +26,9 @@ $(function() {
     $(this).prop("disabled", true);
     $(".save-button .fa-save").addClass("hide");
 
+    // close navbar if open
+    $('.navbar-collapse').collapse('hide');
+
     // check if google drive is connected
     var google = gapi.auth2.getAuthInstance().isSignedIn.get();
     
@@ -145,6 +148,7 @@ $(function() {
     var section = $(this).attr("id");
     $("div.container").hide();
     $("div.section-" + section).show();
+    $('.navbar-collapse').collapse('hide');
   });
   
   // add new table row
