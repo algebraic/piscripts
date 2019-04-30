@@ -120,19 +120,20 @@ s1.headers.update({"Accept": "application/json", "Content-Type": "application/js
 
 # function to send messages
 def send(msg):
-    log.info("send function (" + str(msg) + ")")
-    pbdata = '{"type": "note", "title":"' + msg[0] + '", "body":"' + msg[1] + '"}'
-    s1.headers.update({"Access-Token": pbtoken})
-    try:
-        log.debug("trying to hit pushbullet...")
-        r1 = s1.post(pburl, data=pbdata)
-        log.debug("pushbullet response = " + str(r1))
-        if r1.status_code == 400:
-            log.debug("error stuff")
-            pbdata = '{"type": "note", "title":"Sort Error", "body":"script hit an error in sending"}'
+    if (data["advanced"]["notifications"]["notify"]):
+        log.info("send function (" + str(msg) + ")")
+        pbdata = '{"type": "note", "title":"' + msg[0] + '", "body":"' + msg[1] + '"}'
+        s1.headers.update({"Access-Token": pbtoken})
+        try:
+            log.debug("trying to hit pushbullet...")
             r1 = s1.post(pburl, data=pbdata)
-    except Exception as e:
-        log.error("error sending message: " + str(msg) + " - error:" + str(e))
+            log.debug("pushbullet response = " + str(r1))
+            if r1.status_code == 400:
+                log.debug("error stuff")
+                pbdata = '{"type": "note", "title":"Sort Error", "body":"script hit an error in sending"}'
+                r1 = s1.post(pburl, data=pbdata)
+        except Exception as e:
+            log.error("error sending message: " + str(msg) + " - error:" + str(e))
 
 # set logging level
 log = logging.getLogger("")
