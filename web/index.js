@@ -45,17 +45,17 @@ $(function() {
         "offset" : {
           "episode" : {},
           "season" : {}
+        },
+        "triggercmd" : {
+          "token" : {}
         }
       },
       "savedfileid":""
     }
 
-    console.info("checking for savedfileid");
-    if (data["savedfileid"]) {
-      console.info("savedfileid = " + data["savedfileid"]);
+    if (data && data["savedfileid"]) {
       jsonObj["savedfileid"] = data["savedfileid"];
     }
-    console.info("jsonObj savedfileid = " + jsonObj["savedfileid"]);
 
     // config section
     $("section", ".section-basic").each(function() {
@@ -127,7 +127,7 @@ $(function() {
       });
     });
 
-    localStorage.setItem("sort_config_data1", JSON.stringify(jsonObj));
+    localStorage.setItem("sort_config_data", JSON.stringify(jsonObj));
     if (google) {
       // check if there's a savedfileid
       var existingFile = false;
@@ -245,12 +245,12 @@ $(function() {
                 });
                 // append savedfileid if not there already
                 var jsonobj = JSON.parse(data);
-                if (!jsonobj.savedfileid) {
-                  jsonobj.savedfileid = savedfileid;
-                  // drop into local storage
-                  localStorage.setItem("sort_config_data", JSON.stringify(jsonobj));
-                  $("#savedfileid").val(savedfileid);
-                }
+
+                jsonobj.savedfileid = savedfileid;
+                // drop into local storage
+                localStorage.setItem("sort_config_data", JSON.stringify(jsonobj));
+                $("#savedfileid").val(savedfileid);
+
                 $.each(jsonobj.config, function(key, value) { 
                   var $ctrl = $('#' + key);
                   if ($ctrl.prop("nodeName") == "TABLE") {
@@ -292,12 +292,24 @@ $(function() {
                         $ctrl.val(value);
                     }
                   }
-                  $ctrl.val(value);
                 });
-                console.info("trying to do offsets...");
-                console.info(jsonobj.advanced.offset);
+                
+                $.each(jsonobj.advanced.triggercmd, function(key, value) {
+                  var $ctrl = $('#' + key);
+                  switch($ctrl.attr("type")) {
+                    case "radio" : case "checkbox":
+                      if (value) {
+                        $ctrl.attr("checked",true); 
+                      }
+                      break;
+                    default:
+                      $ctrl.val(value);
+                  }
+                });
+                // triggercmd token for download config file bookmark token
+                $("#token").val(jsonobj.advanced.triggercmd.token);
+
                 $.each(jsonobj.advanced.offset, function(key, value) {
-                  console.info("key = " + key + " -- value = " + value);
                   var $ctrl = $('#' + key);
                   $.each(value, function(k, v) {
                     $("tbody", $ctrl).append("<tr><td contenteditable='true'>" + k + "</td><td contenteditable='true'>" + v + "</td></tr>");
@@ -358,7 +370,7 @@ $(function() {
     console.log("saving to google...");
     
     // construct json object
-    var jsonObj = JSON.parse(localStorage.getItem("sort_config_data1"));
+    var jsonObj = JSON.parse(localStorage.getItem("sort_config_data"));
     
     var jsonFile = new Blob([JSON.stringify(jsonObj)], {type : "text/json"});
     var boundary = '-------314159265358979323846';
@@ -402,18 +414,48 @@ $(function() {
             'body': multipartRequestBody});
         
           callback = function(file) {
-            console.log(file)
-              $.toast({
-                heading: "Config Saved",
-                text: "Your configuration file has been saved to Google Drive",
-                showHideTransition: 'slide',
-                icon: 'success',
-                position: 'bottom-right',
-              });
-              $("#save").prop("disabled", false);
+            console.log(file);
+            $.toast({
+              heading: "Config Saved",
+              text: "Your configuration file has been saved to Google Drive",
+              showHideTransition: 'slide',
+              icon: 'success',
+              position: 'bottom-right',
+            });
+            $("#save").prop("disabled", false);
             // window.location.reload();
+
+            if (jsonObj.advanced.triggercmd.autodownload) {
+              runTriggerCMD(jsonObj.advanced.triggercmd.token);
+            }
           };
             
           request.execute(callback);
         }
     }  
+
+function runTriggerCMD(token) {
+  $.get("https://www.triggercmd.com/trigger/bookmark?token=" + token, function(data,status) {
+      switch($ctrl.attr("type")) {
+        case "radio" : case "checkbox":
+          if (value) {
+            $ctrl.attr("checked",true); 
+          }
+          break;
+        default:
+          $ctrl.val(value);
+      }
+  }).fail(function() {
+    // the triggercmd get fails in console with CORS errors but script does execute
+    // alert("fail");
+  }).always(function() {
+    // alert("always");
+    $.toast({
+      heading: "TriggerCMD Command Sent",
+      text: "Your TriggerCMD command has been executed",
+      showHideTransition: 'slide',
+      icon: 'success',
+      position: 'bottom-right',
+    });
+  });
+}

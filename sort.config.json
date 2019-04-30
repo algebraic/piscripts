@@ -71,6 +71,10 @@
             "season" : {
                 "Talking Dead":-1
             }
+        },
+        "triggercmd" : {
+            "autodownload": false,
+            "token" : ""
         }
         
     }
