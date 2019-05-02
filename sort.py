@@ -533,8 +533,6 @@ for root, dirs, files in os.walk(source_dir, topdown=True):
                     if (os.path.exists(destFile) and not overwrite):
                         moveit = False
 
-                    print("### moveit = " + str(moveit))
-
                     if moveit:
                         shutil.move(os.path.join(root, name), os.path.join(tv_dir+path+newname))
                         url = "https://www.thetvdb.com/?tab=episode&seriesid=" + str(showid) + "&seasonid=" + str(episodeInfo["data"][0]["airedSeasonID"]) + "&id=" + str(episodeInfo["data"][0]["id"])
