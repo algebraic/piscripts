@@ -49,17 +49,6 @@ body, html {
     margin-top: 10px;
 }
 
-.google-warning {
-    width:600px;
-    height:600px;
-    margin:0 auto;
-    position:absolute;
-    left:50%;
-    top:50%;
-    margin-left:-250px;
-    margin-top:-150px;
-}
-
 input[type='checkbox'] {
     height:24px;
     width: 24px;
@@ -131,6 +120,9 @@ select option:checked
     background-color: silver !important; /* for IE */
 }
 
-section.folder {
-    background-image: "img/folder.png";
+section {
+    margin-bottom: 2rem!important;
+}
+section div:first-child {
+    margin-bottom: 0px;
 }

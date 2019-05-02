@@ -89,7 +89,7 @@ function updateSigninStatus(isSignedIn) {
     } else {
         $authorizeButton.show();
         $signoutButton.hide();
-        $("body").append("<div class='google-warning'>Connect your Google account to save app data in Google Drive</div>");
+        $("nav").after("<div class='col-xs-12 text-center mx-3 mt-5'>Connect your Google account to save app data in Google Drive</div>");
         $("div.container, .nav-item").hide();
 
     }
