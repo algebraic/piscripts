@@ -145,7 +145,9 @@ $(function() {
 
   // nav links, swap sections
   $(".nav-link").click(function() {
-    var section = $(this).attr("id");
+    $(".nav-link").removeClass("active");
+    var $this = $(this).addClass("active");
+    var section = $this.attr("id");
     $("div.container").hide();
     $("div.section-" + section).show();
     $('.navbar-collapse').collapse('hide');

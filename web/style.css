@@ -126,3 +126,7 @@ section {
 section div:first-child {
     margin-bottom: 0px;
 }
+
+.nav-link.active {
+    color: darkturquoise !important;
+}
