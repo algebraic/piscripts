@@ -10,12 +10,7 @@ log.setLevel("DEBUG")
 LOG_FILE = "pushbullet.log"
 logformat = logging.Formatter("%(levelname)s %(asctime)s (%(name)s) %(message)s")
 
-parser = argparse.ArgumentParser()
-parser.add_argument("msg", nargs="?", default=["test message","testing pushbullet send out"])
-args = parser.parse_args()
-
-def send():
-    msg = args.msg
+def send(msg):
     log.info("pushbullet message: " + str(msg))
 
     # pushbullet api token stuff
