@@ -50,7 +50,7 @@ if (epdata == None):
         log.debug("yup, " + args.torrent_name + " seems to be an entire season...")
         try:
             os.popen("deluge-console pause " + args.torrent_id)
-            log.info("paused full-season torrent: " + args.torrent_name)
+            log.warning("paused full-season torrent: " + args.torrent_name)
             pushbullet.send(["Warning: entire season added", args.torrent_name + "\\nTorrent paused, go double check that"])
             sys.exit (0)
         except Exception as e:
