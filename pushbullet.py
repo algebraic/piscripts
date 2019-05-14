@@ -5,13 +5,13 @@ from logging.handlers import RotatingFileHandler
 from requests.auth import HTTPDigestAuth
 
 log = logging.getLogger("")
-log.setLevel("DEBUG")
-# LOG_FILE = "/var/log/pushbullet.log"
-LOG_FILE = "pushbullet.log"
+log.setLevel("INFO")
+LOG_FILE = "/var/log/pushbullet.log"
+# LOG_FILE = "pushbullet.log"
 logformat = logging.Formatter("%(levelname)s %(asctime)s (%(name)s) %(message)s")
 
 def send(msg):
-    log.info("pushbullet message: " + str(msg))
+    log.debug("pushbullet message: " + str(msg))
 
     # pushbullet api token stuff
     pbtoken = "o.vw5MjjLvdjB7pgOguRDRlpgqwLKfxdJi"
@@ -29,7 +29,7 @@ def send(msg):
         request = session.post(pburl, data=pbdata)
         log.debug("pushbullet response = " + str(request))
         if request.status_code == 400:
-            log.error("error stuff")
+            log.error("error code 400")
             pbdata = '{"type": "note", "title":"Sort Error", "body":"script hit an error in sending"}'
             request = session.post(pburl, data=pbdata)
     except Exception as e:

@@ -7,8 +7,8 @@ from logging.handlers import RotatingFileHandler
 # set logging
 log = logging.getLogger("")
 log.setLevel("INFO")
-# LOG_FILE = "/var/log/deluge-added.log"
-LOG_FILE = "deluge-complete.log"
+LOG_FILE = "/var/log/deluge-added.log"
+# LOG_FILE = "deluge-complete.log"
 logformat = logging.Formatter("%(levelname)s %(asctime)s (%(name)s) %(message)s")
 
 # stdout handler
