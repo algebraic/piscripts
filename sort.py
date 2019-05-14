@@ -12,11 +12,9 @@ todo
 # maybe tinyurl the links in notifications?
 # make windows folders less stupid
 # see about omitting previously caught confusing files and skip them subsequently if they're still around?
-# maybe see about adding music as well?
 # make some flags for command line operation to change source folder and a quiet mode that doesn't notify
     ^ maybe see about doing an everything/errors only notification scheme
 # consolidate all messages into a single output at the end, just set variables along the way?
-# external config?
 
 # search do-over, omit year on movie or maybe try a year+-1
     ^ for when downloaded movies have the wrong year... like "No Retreat No Surrender 1985 DVDRip DivX-DKB24.mp4" (actually from 1986)
@@ -35,22 +33,17 @@ currently if both episodes have the same name then it's renamed to
     'Marvels Agents of SHIELD S05E01-E02 - Orientation (1-2).mkv'
 if names are different then it catches both titles
     
-switch to pushbullet api for notifications
-access token: o.vw5MjjLvdjB7pgOguRDRlpgqwLKfxdJi
-
 known issue: deleting valid files when show incorrectly matches
 		- as with Legit
              Legit (Jim Jefferies) matches with a BBC show by the same name, non-matched episodes
              in season 1 appear to have just been deleted... That shouldn't happen
 
-
-curl --header 'Access-Token: o.vw5MjjLvdjB7pgOguRDRlpgqwLKfxdJi' https://api.pushbullet.com/v2/users/me
-
-curl -u o.vw5MjjLvdjB7pgOguRDRlpgqwLKfxdJi: https://api.pushbullet.com/v2/pushes -d type=note -d title="Alert" -d body="testing this out  :)"
-
+get the tvdb api stuff into a separate module
+maybe logging junk too?
 '''
 
 import requests, os, re, json, logging, sys, errno, shutil, smtplib, argparse, time
+import pushbullet
 from pathlib import Path
 from requests.auth import HTTPDigestAuth
 from os.path import join, getsize
@@ -107,33 +100,7 @@ except FileNotFoundError as e:
     except FileNotFoundError as e:
         msg = "Sort config file not found, aborting"
         log.error(msg)
-        #send(["Sort Error", msg + "\\n" + time.ctime()])
         sys.exit (0)
-
-# pushbullet stuff
-pbtoken = data["advanced"]["notifications"]["pbtoken"] #o.vw5MjjLvdjB7pgOguRDRlpgqwLKfxdJi"
-pburl = data["advanced"]["notifications"]["pburl"] #"https://api.pushbullet.com/v2/pushes"
-
-# set some session headers
-s1 = requests.Session() # for pushbullet api calls
-s1.headers.update({"Accept": "application/json", "Content-Type": "application/json", "User-Agent": "Mozilla/5.0"})
-
-# function to send messages
-def send(msg):
-    if (data["advanced"]["notifications"]["notify"]):
-        log.info("send function (" + str(msg) + ")")
-        pbdata = '{"type": "note", "title":"' + msg[0] + '", "body":"' + msg[1] + '"}'
-        s1.headers.update({"Access-Token": pbtoken})
-        try:
-            log.debug("trying to hit pushbullet...")
-            r1 = s1.post(pburl, data=pbdata)
-            log.debug("pushbullet response = " + str(r1))
-            if r1.status_code == 400:
-                log.debug("error stuff")
-                pbdata = '{"type": "note", "title":"Sort Error", "body":"script hit an error in sending"}'
-                r1 = s1.post(pburl, data=pbdata)
-        except Exception as e:
-            log.error("error sending message: " + str(msg) + " - error:" + str(e))
 
 # set logging level
 log = logging.getLogger("")
@@ -169,7 +136,7 @@ notify = data["advanced"]["notifications"]["notify"]
 if args.quiet:
     notify = False
 # hard-code quiet if you're downloading a bunch of crap...
-#notify = False
+# notify = False
 
 if args.debug:
     log.setLevel(logging.DEBUG)
@@ -195,14 +162,13 @@ if windows:
     movie_dir = data["config"]["win_movie"]
 else:
     source_dir = data["config"]["pi_src"]
-    # check for alternate source
-    if args.path:
-        source_dir = args.path
-        log.info("using alternate source folder: " + args.path)
-
     tv_dir = data["config"]["pi_tv"]
     movie_dir = data["config"]["pi_movie"]
 
+# check for alternate source
+if args.path:
+    source_dir = args.path
+    log.info("using alternate source folder: " + args.path)
 
 log.info("~~~ begin sorting" + overwrite_msg + ": start checking source folder ~~~")
 
@@ -211,6 +177,7 @@ try:
     dir_path(source_dir)
 except NotADirectoryError as e:
     log.error("Folder doesn't exist: " + str(e))
+    sys.exit (0)
 
 # crawl dirs and look up stuff
 for root, dirs, files in os.walk(source_dir, topdown=True):
@@ -246,7 +213,6 @@ for root, dirs, files in os.walk(source_dir, topdown=True):
             log.debug("file cleanname: '" + cleanname + "'")
 
             # try to extract season/episode info from filename
-            #epdata = re.search('(S(\d{2})E(\d{2})(?:-E(\d{2})|-(\d{2}))?)', cleanname, re.IGNORECASE)
             epdata = re.search('(S(\d+)E(\d+)(?:-E(\d{2})|-(\d{2}))?)', cleanname, re.IGNORECASE)
             if (str(epdata) == "None"):
                 # it's a movie
@@ -262,10 +228,9 @@ for root, dirs, files in os.walk(source_dir, topdown=True):
                     title = None
                     mediaFound = False
                     msg = ["Sort Error", "Can't parse movie name/year for " + name]
-                    continue
                     log.warning(str(msg))
-                    send(msg)
-                    #zj: maybe split this try/catch up into multiple try's...
+                    pushbullet.send(msg, notify)
+                    continue
 
                 # using themoviedb api for movies
                 url = "https://api.themoviedb.org/3/search/movie?api_key=" + tmdbapi + "&query=" + str(title).replace(" ", "+") + "&year=" + str(year)
@@ -294,7 +259,7 @@ for root, dirs, files in os.walk(source_dir, topdown=True):
                     error = json.loads(r.text)
                     errormsg = ["Sort Error (" + str(r.status_code) + ")","themoviedb returned null for " + str(title) + " " + str(year) + error["status_message"]]
                     log.error(msg[1] + " (code " + str(r.status_code) + ") " + error["status_message"])
-                    send(errormsg)
+                    msg = errormsg
                     mediaFound = False
                 else:
                     # tmdb check
@@ -338,26 +303,23 @@ for root, dirs, files in os.walk(source_dir, topdown=True):
                                 log.info(str(msg))
                                 if data["advanced"]["notifications"]["verbose-movies"]:
                                     msg[1] = overview + "\\n" + url
-                                
-                                send(msg)
                             else:
                                 msg = ["Sort Duplicate", "Skipping folder, file already exists: \\n" + str(destFile).replace("\\","\\\\")]
                                 mediaFound = False
                                 skipped = True
                                 log.warning(str(msg))
-                                send(msg)
                                 continue
                         except OSError as e:
                             msg = ["Sort Error", "Error " + str(e.errno) + " (" + str(e.errno == errno.ENOENT) + ")"]
                             log.error(str(msg))
-                            send(msg)
                             log.error(e)
                             raise
                     else:
                         msg = ["Sort Error", "Can't find movie '" + str(title) + "' in TMDb"]
                         mediaFound = False
                         log.warning(str(msg))
-                        send(msg)
+                        
+                pushbullet.send(msg, notify)
                     
             else:
                 # it's a tv show
@@ -424,7 +386,7 @@ for root, dirs, files in os.walk(source_dir, topdown=True):
                     if "Error" in showlist:
                         msg = ["Sort Error", "Can't find show name for '" + showname + "', try searching on tvdb manually"]
                         log.warning(str(msg))
-                        send(msg)
+                        pushbullet.send(msg, notify)
                         mediaFound = False
                         continue
                     elif "data" in showlist and len(showlist["data"]) > 1:
@@ -440,7 +402,7 @@ for root, dirs, files in os.walk(source_dir, topdown=True):
                         if showid is None:
                             msg = ["Sort Error", "Can't find exact show name for '" + showname + "' - " + str(len(showlist["data"])) + " shows found, try replacing name or forcing id"]
                             log.warning(str(msg))
-                            send(msg)
+                            pushbullet.send(msg, notify)
                             mediaFound = False
                             continue
                     else:
@@ -484,7 +446,7 @@ for root, dirs, files in os.walk(source_dir, topdown=True):
                     # show isn't queryable, some bit of info is off
                     msg = ["Sort Error", "TVDB returned a " + str(r.status_code) + " for " + str(tmdbname) + ", problem with showid (" + str(showid) + "), season num (" + str(s_num) + "), or episode num (" + str(e_num) + ")"]
                     log.warning(str(msg))
-                    send(msg)
+                    pushbullet.send(msg, notify)
                     #log.warning("tvdb returned a 404 for " + str(tmdbname) + ", problem with showid (" + str(showid) + "), season # (" + str(s_num) + "), or episode # (" + str(e_num) + ")")
                     mediaFound = False
                     continue
@@ -557,11 +519,11 @@ for root, dirs, files in os.walk(source_dir, topdown=True):
                     else:
                         msg = ["Sort Duplicate", "File already exists: \\n" + str(destFile).replace("\\","\\\\")]
                     
-                    send(msg)
+                    pushbullet.send(msg, notify)
                 except OSError as e:
                     msg = ["Sort Error", "Error " + str(e.errno) + " (" + str(e.errno == errno.ENOENT) + ")"]
                     log.error(str(msg))
-                    send(msg)
+                    pushbullet.send(msg, notify)
                     log.error(e)
                     raise
         else:
@@ -587,12 +549,3 @@ for root, dirs, files in os.walk(source_dir, topdown=True):
     log.info("=================")
 log.setLevel(logging.INFO)
 log.info("~~~ sort completed, happy watching ~~~")
-
-#msg = ["Sort Ran", "Sort finished running at " + time.ctime()]
-#send(msg)
-
-
-'''
-if notify:
-    smtp.quit()
-'''
