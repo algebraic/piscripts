@@ -4,11 +4,8 @@ from logging import handlers
 from logging.handlers import RotatingFileHandler
 from requests.auth import HTTPDigestAuth
 
+# rest of logging caught by calling script
 log = logging.getLogger("")
-log.setLevel("INFO")
-LOG_FILE = "/var/log/pushbullet.log"
-# LOG_FILE = "pushbullet.log"
-logformat = logging.Formatter("%(levelname)s %(asctime)s (%(name)s) %(message)s")
 
 # read config file
 try:
@@ -26,7 +23,6 @@ except FileNotFoundError as e:
 
 def send(msg, notify = True):
     log.debug("pushbullet message: " + str(msg))
-    print("### notify = " + str(notify))
     if not notify:
         log.info("** quiet mode, no messages **")
     # pushbullet api token stuff
