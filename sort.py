@@ -233,6 +233,7 @@ for root, dirs, files in os.walk(source_dir, topdown=True):
                     continue
 
                 # using themoviedb api for movies
+                # zj: see about omitting year?
                 url = "https://api.themoviedb.org/3/search/movie?api_key=" + tmdbapi + "&query=" + str(title).replace(" ", "+") + "&year=" + str(year)
 
                 log.debug("themoviedb url: " + str(url))
@@ -417,13 +418,13 @@ for root, dirs, files in os.walk(source_dir, topdown=True):
                 if tmdbname in data["advanced"]["offset"]["episode"]:
                     offset = data["advanced"]["offset"]["episode"][tmdbname]
                     log.info("offsetting " + tmdbname + " episode numbers by " + str(offset))
-                    e_num = int(e_num) + offset
+                    e_num = int(e_num) + int(offset)
                 
                 # check for season offset
                 if tmdbname in data["advanced"]["offset"]["season"]:
                     offset = data["advanced"]["offset"]["season"][tmdbname]
                     log.info("offsetting " + tmdbname + " season numbers by " + str(offset))
-                    s_num = int(s_num) + offset
+                    s_num = int(s_num) + int(offset)
 
                 # get show episode from tvdb by showid
                 if not isForced:
