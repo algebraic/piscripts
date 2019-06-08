@@ -259,7 +259,7 @@ for root, dirs, files in os.walk(source_dir, topdown=True):
                 if movielist is None:
                     error = json.loads(r.text)
                     errormsg = ["Sort Error (" + str(r.status_code) + ")","themoviedb returned null for " + str(title) + " " + str(year)]
-                    log.error(msg[1] + " (code " + str(r.status_code) + ") " + error["status_message"])
+                    log.error(msg[1] + " (code " + str(r.status_code) + ")")
                     msg = errormsg
                     mediaFound = False
                 else:
