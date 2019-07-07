@@ -7,6 +7,51 @@
 
   <title>Eyesort</title>
 
+  <!-- firebase stuff -->
+  <!-- update the version number as needed -->
+  <script defer src="/__/firebase/6.0.4/firebase-app.js"></script>
+  <!-- include only the Firebase features as you need -->
+  <script defer src="/__/firebase/6.0.4/firebase-auth.js"></script>
+  <script defer src="/__/firebase/6.0.4/firebase-database.js"></script>
+  <script defer src="/__/firebase/6.0.4/firebase-messaging.js"></script>
+  <script defer src="/__/firebase/6.0.4/firebase-storage.js"></script>
+  <!-- initialize the SDK after all desired features are loaded -->
+  <script defer src="/__/firebase/init.js"></script>
+
+  <script src="https://cdn.firebase.com/libs/firebaseui/4.0.0/firebaseui.js"></script>
+  <link type="text/css" rel="stylesheet" href="https://cdn.firebase.com/libs/firebaseui/4.0.0/firebaseui.css" />
+
+  <script type="text/javascript">
+    // FirebaseUI config.
+    var uiConfig = {
+      signInSuccessUrl: '<url-to-redirect-to-on-success>',
+      signInOptions: [
+        // Leave the lines as is for the providers you want to offer your users.
+        firebase.auth.GoogleAuthProvider.PROVIDER_ID,
+        firebase.auth.FacebookAuthProvider.PROVIDER_ID,
+        firebase.auth.TwitterAuthProvider.PROVIDER_ID,
+        firebase.auth.GithubAuthProvider.PROVIDER_ID,
+        firebase.auth.EmailAuthProvider.PROVIDER_ID,
+        firebase.auth.PhoneAuthProvider.PROVIDER_ID,
+        firebaseui.auth.AnonymousAuthProvider.PROVIDER_ID
+      ],
+      // tosUrl and privacyPolicyUrl accept either url string or a callback
+      // function.
+      // Terms of service url/callback.
+      tosUrl: '<your-tos-url>',
+      // Privacy policy url/callback.
+      privacyPolicyUrl: function() {
+        window.location.assign('<your-privacy-policy-url>');
+      }
+    };
+
+    // Initialize the FirebaseUI Widget using Firebase.
+    var ui = new firebaseui.auth.AuthUI(firebase.auth());
+    // The start method will wait until the DOM is loaded.
+    ui.start('#firebaseui-auth-container', uiConfig);
+  </script>
+
+  <!-- regular stuff -->
   <link rel="apple-touch-icon" sizes="180x180" href="img/fav/apple-touch-icon.png">
   <link rel="icon" type="image/png" sizes="32x32" href="img/fav/favicon-32x32.png">
   <link rel="icon" type="image/png" sizes="16x16" href="img/fav/favicon-16x16.png">
@@ -38,6 +83,7 @@
 </head>
 
 <body>
+  <div id="firebaseui-auth-container"></div>
 
   <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
     <a class="navbar-brand" href="index.html">
@@ -65,6 +111,9 @@
           <button type="button" id="save" class="btn btn-sm btn-outline-secondary save-button ml-lg-2">
             <i class="fas fa-save"></i>
             <i class="fa fa-spinner fa-spin hide"></i> Save</button>
+            <button type="button" id="download" class="btn btn-sm btn-outline-secondary dl-button ml-lg-2 mt-1" title="download Eyesort script">
+              <a href="https://raw.githubusercontent.com/algebraic/piscripts/master/sort.py"><i class="fas fa-download"></i></a>
+            </button>
         </li>
       </ul>
       <div class="form-group drive-buttons hide mb-0" style="position:relative; right:0px;">
@@ -344,9 +393,11 @@
       <p>The verbose settings will include the movie or episode overview from <a href="https://www.themoviedb.org/"
           target="_blank">TMDb</a>.</p>
       <br>
-      <p>Movies are all or nothing, but TV shows can be either all or just the shows included in the Verbose Shows List.</p>
+      <p>Movies are all or nothing, but TV shows can be either all or just the shows included in the Verbose Shows List.
+      </p>
       <br>
-      <p>Note - for the list use the <strong>final</strong> name of the tv show, either the official name from TMDb or your own replaced name</p>
+      <p>Note - for the list use the <strong>final</strong> name of the tv show, either the official name from TMDb or
+        your own replaced name</p>
     </div>
 
     <section class="offsets">
@@ -414,7 +465,7 @@
       <br>
     </div>
 
-    
+
     <section class="triggercmd">
       <div class="form-group row">
         <div class="col-sm-10">
@@ -438,12 +489,22 @@
     </section>
 
     <div class="help-text hide" id="help-triggercmd">
-      <p>Run a <a href="https://www.triggercmd.com" target="_blank">TriggerCMD</a> command when Eyesort config is saved.</p>
+      <p>Run a <a href="https://www.triggercmd.com" target="_blank">TriggerCMD</a> command when Eyesort config is saved.
+      </p>
       <br>
       <p>Click the Bookmark button on a command to obtain the token.</p>
     </div>
 
   </div>
+
+  <!-- The core Firebase JS SDK is always required and must be listed first -->
+  <script src="/__/firebase/6.0.4/firebase-app.js"></script>
+
+  <!-- TODO: Add SDKs for Firebase products that you want to use
+     https://firebase.google.com/docs/web/setup#reserved-urls -->
+
+  <!-- Initialize Firebase -->
+  <script src="/__/firebase/init.js"></script>
 
 </body>
 
