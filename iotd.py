@@ -9,19 +9,23 @@ import pathlib
 import ctypes
 from urllib.parse import urlparse
 
-url = "https://www.reddit.com/r/wallpapers.json"
+url = "https://www.reddit.com/r/wallpapers.json?limit=100"
 # url = "https://www.reddit.com/r/wallpaper.json"
+# ?&limit=100
 
 headers = {"User-agent": "Zach\'s Test Script"}
-folder = "C:\\Users\\johnsonz2\\Downloads\\bg-test\\"
+# folder = "C:\\Users\\johnsonz2\\Downloads\\bg-test\\"
+folder = "/home/pi/Pictures/"
 
 # response = requests.get(url)
 response = requests.get(url, headers=headers)
 
+
 # exit if there's any error in get
 if not response.ok:
     print("Error", str(response.status_code) + " - " + response.reason)
-    exit()
+    sys.exit()
+
 
 # get an array of posts in the page
 array_of_posts = response.json()['data']['children']
@@ -53,22 +57,29 @@ ext = pathlib.Path(image_url).suffix
 print("ext = " + ext)
 
 # grab image
+image = None
 try:
     image = requests.get(image_url, headers=headers)
-except requests.exceptions.RequestException as e:
-    print("Error: " + str(e))
+except requests.ConnectionError as e:
+   # handle the exception
+    print("Error: " + str(e.args[0].args[0]))
     sys.exit(1)
 
-if (image.status_code == 200):
-    print("yay!")
+if (image != None and image.status_code == 200):
     try:
         file_loc = folder + random_post['title'] + ext
         output_filehandle = open(file_loc, mode='bx')
         output_filehandle.write(image.content)
-        # set desktop background
-        ctypes.windll.user32.SystemParametersInfoW(20, 0, file_loc , 0)
-    except:
+        # set desktop background - windows
+        # ctypes.windll.user32.SystemParametersInfoW(20, 0, file_loc, 0)
+        # set desktop background - rpi
+        os.system("pcmanfm --set-wallpaper '" + file_loc + "'")
+    except AttributeError as e:
         print("uh-oh, error")
+        print(e)
         pass
 
 # fix for linux and maybe handle duplicates and junk...
+
+for i in range(range):
+    print(i)
