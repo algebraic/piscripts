@@ -16,6 +16,6 @@ exclude = [
 for item in githublist:
     if item["name"] not in exclude:
         name = item["name"]
-        call(['bash', '/home/vpn/download.sh', name])
+        call(['bash', '/home/pi/scripts/download.sh', name])
 
 pushbullet.send(["GitHub Download","Scripts have been downloaded from GitHub"])
