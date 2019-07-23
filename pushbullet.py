@@ -9,7 +9,7 @@ log = logging.getLogger("")
 
 # read config file
 try:
-    with open('/home/vpn/sort.config.json') as json_data_file:
+    with open('/home/pi/scripts/sort.config.json') as json_data_file:
         data = json.load(json_data_file)
 except FileNotFoundError as e:
     log.debug("Config file not found, try windows path")
