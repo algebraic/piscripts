@@ -310,6 +310,7 @@ for root, dirs, files in os.walk(source_dir, topdown=True):
                                 mediaFound = False
                                 skipped = True
                                 log.warning(str(msg))
+                                pushbullet.send(msg, notify)
                                 continue
                         except OSError as e:
                             msg = ["Sort Error", "Error " + str(e.errno) + " (" + str(e.errno == errno.ENOENT) + ")"]
@@ -520,6 +521,7 @@ for root, dirs, files in os.walk(source_dir, topdown=True):
                             msg[1] = epdata_str + " - " + episodeName + "\\n" + overview + "\\n" + url
                     else:
                         msg = ["Sort Duplicate", "File already exists: \\n" + str(destFile).replace("\\","\\\\")]
+                        pushbullet.send(msg, notify)
                     
                     pushbullet.send(msg, notify)
                 except OSError as e:
