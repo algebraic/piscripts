@@ -8,7 +8,7 @@ from logging.handlers import RotatingFileHandler
 log = logging.getLogger("")
 log.setLevel("INFO")
 LOG_FILE = "/var/log/deluge-added.log"
-# LOG_FILE = "deluge-complete.log"
+# LOG_FILE = "C:\\stuff\\deluge-added.log"
 logformat = logging.Formatter("%(levelname)s %(asctime)s (%(name)s) %(message)s")
 
 # stdout handler
@@ -37,7 +37,7 @@ if args.save_path:
 
 if (args.torrent_name == ""):
     log.debug("no torrent name, don't do anything")
-    sys.exit (0)
+    sys.exit(0)
 
 # check to make sure it's not a whole season
 cleanname = re.sub(r'\.', " ", args.torrent_name).strip()
@@ -48,13 +48,26 @@ if (epdata == None):
     epdata = re.search('(S(\d+) )', cleanname, re.IGNORECASE)
     if (epdata != None):
         log.debug("yup, " + args.torrent_name + " seems to be an entire season...")
-        try:
-            os.popen("deluge-console pause " + args.torrent_id)
-            log.warning("paused full-season torrent: " + args.torrent_name)
-            pushbullet.send(["Warning: entire season added", args.torrent_name + "\\nTorrent paused, go double check that"])
-            sys.exit (0)
-        except Exception as e:
-            pushbullet.send(["ERROR: unable to pause", args.torrent_name + "\\nTorrent can't be paused, you should probably check that out"])
-            log.error("error: " + str(e))
+        stopTorrent(args.torrent_name + " seems to be an entire season")
+        sys.exit(0)
+    else:
+        # check if it's on netflix
+        log.debug("might be a movie, check for '" + cleanname + "' on netflix...")
+        yr = re.search('[\(|\[|" "](\d{4})[\)|\]|" "]', cleanname, re.IGNORECASE)
+        title = cleanname.split(yr.group(0), 1)[0].strip()
+        year = yr.group(1)
+        log.debug("movie year=" + str(year))
+        log.debug("movie title=" + str(title))
 
 log.info("passed torrent " + args.torrent_name)
+
+# function to pause torrent
+def stopTorrent(msg):
+    try:
+        os.popen("deluge-console pause " + args.torrent_id)
+        log.warning("paused full-season torrent: " + args.torrent_name)
+        pushbullet.send(["Warning: torrent paused", msg])
+        sys.exit(0)
+    except Exception as e:
+        pushbullet.send(["ERROR: unable to pause", args.torrent_name + "\\nTorrent can't be paused, you should probably check that out"])
+        log.error("error: " + str(e))
