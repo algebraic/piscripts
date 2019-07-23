@@ -9,6 +9,7 @@ changelog
 04052019 - put all this junk in github :)
 
 todo
+# check if something is on netflix before downloading?
 # maybe tinyurl the links in notifications?
 # make windows folders less stupid
 # see about omitting previously caught confusing files and skip them subsequently if they're still around?
@@ -528,7 +529,7 @@ for root, dirs, files in os.walk(source_dir, topdown=True):
                     log.error(e)
                     raise
         else:
-            log.info("No media found")
+            log.info("File " + name + " is a " + ext + "file, skipping")
 
     if not skipped:
         if not mediaFound:
