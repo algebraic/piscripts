@@ -154,7 +154,7 @@ if overwrite:
 # function to replace special characters
 def stripChars(string):
     separator = "-"
-    return re.sub('[^\w^\'^\(^\)\-_\. &,]', separator, string)
+    return re.sub('[^\w^\'^\(^\)\-_\. &,:]', separator, string)
 
 # set folders
 if windows:
