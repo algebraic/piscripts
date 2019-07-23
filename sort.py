@@ -529,7 +529,7 @@ for root, dirs, files in os.walk(source_dir, topdown=True):
                     log.error(e)
                     raise
         else:
-            log.info("File " + name + " is a " + ext + "file, skipping")
+            log.info("skipping " + ext + " file - '" + name + "'")
 
     if not skipped:
         if not mediaFound:
