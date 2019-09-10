@@ -19,7 +19,7 @@ from hurry.filesize import size
 
 # database connection
 #database = "C:\\Users\\johnsonz2\\Downloads\\com.plexapp.plugins.library.db"
-database = "/mnt/storage/plexdata/Library/Application Support/Plex Media Server/Plug-in Support/Databases/com.plexapp.plugins.library.db"
+database = "/storage/torrents/plexdata/Library/Application Support/Plex Media Server/Plug-in Support/Databases/com.plexapp.plugins.library.db"
 
 # set logging
 log = logging.getLogger("")
@@ -147,7 +147,7 @@ send(message)
 
 # try some filesystem space stuff
 ######################################################################################################################
-df = subprocess.Popen(["df", "--si", "/mnt/plex"], stdout=subprocess.PIPE)
+df = subprocess.Popen(["df", "--si", "/storage/plex"], stdout=subprocess.PIPE)
 
 output = df.communicate()[0]
 output = output.decode("utf-8")
