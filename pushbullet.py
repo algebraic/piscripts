@@ -7,6 +7,14 @@ from requests.auth import HTTPDigestAuth
 # rest of logging caught by calling script
 log = logging.getLogger("")
 
+# stdout handler
+logformat = logging.Formatter("%(levelname)s %(asctime)s (%(name)s) %(message)s")
+ch = logging.StreamHandler(sys.stdout)
+ch.setFormatter(logformat)
+log.addHandler(ch)
+
+log.info("testing")
+
 # read config file
 try:
     with open('/home/pi/scripts/sort.config.json') as json_data_file:

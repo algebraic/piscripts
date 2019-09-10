@@ -7,14 +7,13 @@ Using TMDb api for data - themoviedb.org
 changelog
 03052019 - added a season offset capability like episode offset (for talking dead)
 04052019 - put all this junk in github :)
+08142019 - using Unidecode (https://pypi.org/project/Unidecode/) to handle episode/movie names with special characters
 
 todo
 # check if something is on netflix before downloading?
 # maybe tinyurl the links in notifications?
 # make windows folders less stupid
 # see about omitting previously caught confusing files and skip them subsequently if they're still around?
-# make some flags for command line operation to change source folder and a quiet mode that doesn't notify
-    ^ maybe see about doing an everything/errors only notification scheme
 # consolidate all messages into a single output at the end, just set variables along the way?
 
 # search do-over, omit year on movie or maybe try a year+-1
@@ -50,6 +49,7 @@ from requests.auth import HTTPDigestAuth
 from os.path import join, getsize
 from logging import handlers
 from logging.handlers import RotatingFileHandler
+from unidecode import unidecode
 
 # only allow single instance
 windows = False
@@ -271,7 +271,7 @@ for root, dirs, files in os.walk(source_dir, topdown=True):
                         else:
                             # check titles
                             for i in movielist["results"]:
-                                log.debug("checking movie title '" + str(i["title"]) + "'")
+                                log.debug("checking movie title '" + str(i["title"]) + "' - id = " + str(i["id"]))
                                 if (title.lower() == i["title"].lower()):
                                     movie = i
                                     break
@@ -478,7 +478,14 @@ for root, dirs, files in os.walk(source_dir, topdown=True):
                         # episodes have different names, add both names
                         episodeName = epname + "-" + ep2name
 
-                shortname = tmdbname + " " + epdata_str + " - " + episodeName
+                # fix any weird characters in episode title
+                log.info("unencoded episodeName: " + episodeName)
+                episodeName = str(unidecode(episodeName))
+                log.info("ENcoded episodeName: " + episodeName)
+
+                shortname = tmdbname + " " + epdata_str + " - " + str(unidecode(episodeName))
+                log.info("shortname = " + shortname)
+                
                 newname = shortname + ext
                 
                 path = os.path.join(re.sub('[^\w^\'^\(^\)\-_\. &,]', '', tmdbname), "Season " + str(s_num) + os.path.sep)
