@@ -81,9 +81,10 @@ logformat = logging.Formatter("%(levelname)s %(asctime)s (%(name)s) %(message)s"
 ##CRITICAL (problems with an api or filename confusion)
 
 # stdout handler
-ch = logging.StreamHandler(sys.stdout)
-ch.setFormatter(logformat)
-log.addHandler(ch)
+# ch = logging.StreamHandler(sys.stdout)
+# ch.setFormatter(logformat)
+# log.addHandler(ch)
+# ^^^ adding the stdout handler here duplicates log output
 # file handler
 fh = handlers.RotatingFileHandler(LOG_FILE, maxBytes=(1048576*5), backupCount=7)
 fh.setFormatter(logformat)
@@ -91,7 +92,7 @@ log.addHandler(fh)
 
 # read config file
 try:
-    with open('/home/pi/scripts/sort.config.json') as json_data_file:
+    with open('sort.config.json') as json_data_file:
         data = json.load(json_data_file)
 except FileNotFoundError as e:
     print("Config file not found, try windows path")
