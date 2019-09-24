@@ -92,7 +92,7 @@ log.addHandler(fh)
 
 # read config file
 try:
-    with open('sort.config.json') as json_data_file:
+    with open('/home/pi/piscripts/sort.config.json') as json_data_file:
         data = json.load(json_data_file)
 except FileNotFoundError as e:
     print("Config file not found, try windows path")
@@ -300,7 +300,7 @@ for root, dirs, files in os.walk(source_dir, topdown=True):
                             
                             if moveit:
                                 shutil.move(os.path.join(root, name), destFile)
-                                overview = str(movie["overview"])
+                                overview = str(unidecode(movie["overview"]))
                                 url = "https://www.themoviedb.org/movie/" + str(movie["id"])
                                 msg = ["New Movie: " + newname, url]
                                 log.info(str(msg))
@@ -480,10 +480,8 @@ for root, dirs, files in os.walk(source_dir, topdown=True):
                         episodeName = epname + "-" + ep2name
 
                 # fix any weird characters in episode title
-                log.info("unencoded episodeName: " + episodeName)
                 episodeName = str(unidecode(episodeName))
-                log.info("ENcoded episodeName: " + episodeName)
-
+                
                 shortname = tmdbname + " " + epdata_str + " - " + str(unidecode(episodeName))
                 log.info("shortname = " + shortname)
                 
@@ -524,7 +522,7 @@ for root, dirs, files in os.walk(source_dir, topdown=True):
 
                             # get show's TMDb id for notification link
                             url = "https://www.themoviedb.org/tv/" + str(tmdbid) + "/season/" + str(s_num) + "/episode/" + str(e_num)
-                            overview = str(episodeInfo["data"][0]["overview"])
+                            overview = str(unidecode(episodeInfo["data"][0]["overview"]))
                             # note - overview field from tvdb can contain unicode characters - message gets encoded as utf-8 in send function
                             msg[1] = epdata_str + " - " + episodeName + "\\n" + overview + "\\n" + url
                     else:
