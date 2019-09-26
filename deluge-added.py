@@ -6,7 +6,7 @@ from logging.handlers import RotatingFileHandler
 
 # set logging
 log = logging.getLogger("")
-log.setLevel("DEBUG")
+log.setLevel("INFO")
 LOG_FILE = "/var/log/deluge-added.log"
 # LOG_FILE = "C:\\stuff\\deluge-added.log"
 logformat = logging.Formatter("%(levelname)s %(asctime)s (%(name)s) %(message)s")
@@ -14,7 +14,7 @@ logformat = logging.Formatter("%(levelname)s %(asctime)s (%(name)s) %(message)s"
 # stdout handler
 ch = logging.StreamHandler(sys.stdout)
 ch.setFormatter(logformat)
-log.addHandler(ch)
+# log.addHandler(ch)
 # file handler
 fh = handlers.RotatingFileHandler(LOG_FILE, maxBytes=(1048576*5), backupCount=7)
 fh.setFormatter(logformat)
@@ -39,8 +39,8 @@ if (args.torrent_name == ""):
     log.debug("no torrent name, don't do anything")
     sys.exit(0)
 
-log.warning("this would be the whole command line thing...")
-log.warning("/home/pi/scripts/deluge-added.py " + args.torrent_id + " " + args.torrent_name + " " + args.save_path)
+# log.warning("this would be the whole command line thing...")
+# log.warning("/home/pi/scripts/deluge-added.py " + args.torrent_id + " " + args.torrent_name + " " + args.save_path)
 
 # function to pause torrent
 def stopTorrent(msg):
@@ -59,7 +59,7 @@ def stopTorrent(msg):
 
         # subprocess.run("sudo -u vpn -i -- deluge-console -c /home/vpn/.config/deluge/ pause " + test_id, shell=True, check=True)
 
-        log.debug("paused full-season torrent: " + args.torrent_name)
+        log.info("paused full-season torrent: " + args.torrent_name)
         pushbullet.send(["Warning: torrent paused", msg])
         sys.exit(0)
     except Exception as e:
