@@ -8,7 +8,6 @@ from logging.handlers import RotatingFileHandler
 log = logging.getLogger("")
 log.setLevel("INFO")
 LOG_FILE = "/var/log/deluge-added.log"
-# LOG_FILE = "C:\\stuff\\deluge-added.log"
 logformat = logging.Formatter("%(levelname)s %(asctime)s (%(name)s) %(message)s")
 
 # stdout handler
@@ -39,26 +38,11 @@ if (args.torrent_name == ""):
     log.debug("no torrent name, don't do anything")
     sys.exit(0)
 
-# log.warning("this would be the whole command line thing...")
-# log.warning("/home/pi/scripts/deluge-added.py " + args.torrent_id + " " + args.torrent_name + " " + args.save_path)
-
 # function to pause torrent
 def stopTorrent(msg):
     try:
-        log.debug("attempting to pause torrent " + args.torrent_name)
-        log.debug("args.torrent_id: " + args.torrent_id)
-        log.debug("## this is the pause command...")
-        log.debug("## sudo -u vpn -i -- deluge-console -c /home/vpn/.config/deluge/ pause " + args.torrent_id)
-
-        # os.popen("sudo -u vpn -i -- deluge-console -c /home/vpn/.config/deluge/ pause " + args.torrent_id)
-
-        subprocess.run("sudo -u vpn -i -- deluge-console pause " + args.torrent_id, shell=True, check=True)
-
-        # ok, so something is fucked in here, it won't pause crap when it's added, but running it manually seems to work...
-        # it's catching an exception, the "unable to pause error" thing below here
-
-        # subprocess.run("sudo -u vpn -i -- deluge-console -c /home/vpn/.config/deluge/ pause " + test_id, shell=True, check=True)
-
+        cmd = "deluge-console pause " + args.torrent_id
+        subprocess.run(cmd.split(), check=True, text=True)
         log.info("paused full-season torrent: " + args.torrent_name)
         pushbullet.send(["Warning: torrent paused", msg])
         sys.exit(0)
@@ -70,7 +54,16 @@ def stopTorrent(msg):
 cleanname = re.sub(r'\.', " ", args.torrent_name).strip()
 epdata = re.search('(S(\d+)E(\d+)(?:-E(\d{2})|-(\d{2}))?)', cleanname, re.IGNORECASE)
 
-if (epdata == None):
+if (epdata != None):
+    log.debug("has episode data, check for duplicate...")
+    log.debug("cleanname = " + cleanname)
+    log.debug("epdata = " + str(epdata))
+    # ok, so checking for dups is going to be involved...let's notify for proper's instead for now...
+    if (re.search('proper', cleanname, re.IGNORECASE)):
+        # it's a 'proper' replacement dl
+        log.warning("'proper' downloaded: " + cleanname)
+        pushbullet.send(["'PROPER' downloaded:", args.torrent_name + "\\nCheck if the 'proper' download replaces something."])
+else:
     log.debug("doesn't seem to have episode data, check for full season...")
     epdata = re.search('(S(\d+) )', cleanname, re.IGNORECASE)
     if (epdata != None):
@@ -81,7 +74,7 @@ if (epdata == None):
         # check if it's on netflix
         log.debug("might be a movie, check for '" + cleanname + "' on netflix...")
         yr = re.search('[\(|\[|" "](\d{4})[\)|\]|" "]', cleanname, re.IGNORECASE)
-        log.debug("yr = " + yr)
+        log.debug("yr = " + str(yr))
         if (yr != None):
             title = cleanname.split(yr.group(0), 1)[0].strip()
             year = yr.group(1)
