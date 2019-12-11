@@ -42,13 +42,13 @@ log.debug("=================")
 try:
     import socket
     s = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
-    ## Create an abstract socket, by prefixing it with null. 
-    s.bind( '\0postconnect_gateway_notify_lock') 
+    # Create an abstract socket, by prefixing it with null.
+    s.bind('\0postconnect_gateway_notify_lock')
 except socket.error as e:
     error_code = e.args[0]
     error_string = e.args[1]
-    log.error("Process already running (%d:%s ). Exiting" % ( error_code, error_string))
-    sys.exit (0) 
+    log.error("Process already running (%d:%s ). Exiting" % (error_code, error_string))
+    sys.exit(0)
 except AttributeError as ae:
     log.error("attribute error...probably running on windows")
     log.error(ae)
@@ -98,7 +98,7 @@ def send(msg):
 
 
 # function to return ip address
-@timeout_decorator.timeout(5, timeout_exception=StopIteration)
+@timeout_decorator.timeout(10, timeout_exception=StopIteration)
 def getIp(bashCommand):
      try:
           process = subprocess.Popen(bashCommand.split(), stdout=subprocess.PIPE)
@@ -112,34 +112,40 @@ def getIp(bashCommand):
 # check regular pi ip address
 ######################################################################################################################
 if notify:
-    bashCommand = "curl ipinfo.io --max-time 10 --connect-timeout 5"
+    bashCommand = "curl ipinfo.io --max-time 10 --connect-timeout 10"
     ip1 = getIp(bashCommand)
     log.info("regular user ip address: " + ip1)
 
 # check vpn ip address
 ######################################################################################################################
-bashCommand = "sudo -u vpn -i -- curl ipinfo.io --max-time 10 --connect-timeout 5"
+bashCommand = "sudo -u vpn -i -- curl ipinfo.io --max-time 10 --connect-timeout 10"
 ip2 = getIp(bashCommand)
 log.info("vpn ip address: " + ip2)
 
 if ip2 == "null":
      # restart vpn
-     log.warn("vpn ip is null, restarting!")
+     log.warning("vpn ip is null, restarting!")
+
+    # possibility of dns problem...remember that whole thing?
+    # maybe check sudo nano /etc/systemd/resolved.conf
+    # sudo systemctl restart systemd-resolved
+
      restartCmd = "sudo systemctl restart openvpn deluged deluge-web"
      restartprocess = subprocess.Popen(restartCmd.split(), stdout=subprocess.PIPE)
      o, e = restartprocess.communicate()
-     log.info("output: " + o)
-     log.info("error: " + e)
+     log.info("output: " + str(o))
+     log.info("error: " + str(e))
      msg = ["VPN ip was null", "Restarted vpn & deluge services.\\n\\n" + str(datetime.datetime.now())]
 else:
      # send stuff
      if notify:
          msg = ["IP Address Check", "Raspberry Pi ip address: " + ip1 + "\\nVPN ip address: " + ip2]
-         send(msg)
+         
+send(msg)
 
 # all done
 ######################################################################################################################
-#alldonemsg = ["Check Ran", "IP Check ran at " + str(datetime.datetime.now())]
-#send(alldonemsg)
+# alldonemsg = ["Check Ran", "IP Check ran at " + str(datetime.datetime.now())]
+# send(alldonemsg)
 log.debug("=================")
 log.debug("~~~ all done ~~~")
