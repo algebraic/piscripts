@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 import sys, argparse, logging, re, os, subprocess
-import pushbullet
+import pushbullet, justwatch
 from logging import handlers
 from logging.handlers import RotatingFileHandler
 
@@ -75,6 +75,7 @@ else:
         log.debug("might be a movie, check for '" + cleanname + "' on netflix...")
         yr = re.search('[\(|\[|" "](\d{4})[\)|\]|" "]', cleanname, re.IGNORECASE)
         log.debug("yr = " + str(yr))
+        title=""
         if (yr != None):
             title = cleanname.split(yr.group(0), 1)[0].strip()
             year = yr.group(1)
@@ -82,6 +83,14 @@ else:
             log.debug("movie title=" + str(title))
         else:
             log.debug("can't parse title/year from '" + cleanname + "'")
+        
+        netflix = justwatch.find(title)
+        log.debug("is '" + title + "' on netflix? " + str(netflix))
+
+        if netflix:
+            stopTorrent(args.torrent_name + " appears to be available on Netflix")
+            sys.exit(0)
+
         # finish this ^
         # also maybe check that it's not already in the library?
 
