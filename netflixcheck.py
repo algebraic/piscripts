@@ -23,25 +23,33 @@ except AttributeError as ae:
 
 # rest of logging caught by calling script
 log = logging.getLogger("")
+# log.setLevel("DEBUG")
 
 # stdout handler
-logformat = logging.Formatter("%(levelname)s %(asctime)s (%(name)s) %(message)s")
-ch = logging.StreamHandler(sys.stdout)
-ch.setFormatter(logformat)
-log.addHandler(ch)
+# logformat = logging.Formatter("%(levelname)s %(asctime)s (%(name)s) %(message)s")
+# ch = logging.StreamHandler(sys.stdout)
+# ch.setFormatter(logformat)
+# log.addHandler(ch)
 
 def find(name):
     log.debug("searching for '" + name + "'")
 
-    just_watch = JustWatch(country='US')
+    # nfx, stn
+    just_watch = JustWatch(country='US', providers=['nfx'])
 
-    results = just_watch.search_for_item(providers=['nfx'], query=name)
+    results = just_watch.search_for_item(query=name)
 
     log.debug("(results=" + str(len(results["items"])) + ")")
 
     for item in results["items"]:
-        if item["title"].casefold() == name.casefold():
+        log.debug("### result: " + item["title"])
+        if item["title"].casefold() == name.casefold() and item["object_type"] != "show":
             log.info("yay, found it:: " + item["title"])
             return True
 
-# find('6 underground')
+    print("=====================================================================")
+    print(results["items"][0])
+    print("=====================================================================")
+
+# links -download-dir /storage/torrents/downloading/torrent_files https://yts.lt/movie/containment-2015#1080p
+find('containment (2015)')

@@ -1,12 +1,12 @@
 #!/usr/bin/env python3
 import sys, argparse, logging, re, os, subprocess
-import pushbullet, justwatch
+import pushbullet, netflixcheck
 from logging import handlers
 from logging.handlers import RotatingFileHandler
 
 # set logging
 log = logging.getLogger("")
-log.setLevel("INFO")
+log.setLevel("DEBUG")
 LOG_FILE = "/var/log/deluge-added.log"
 logformat = logging.Formatter("%(levelname)s %(asctime)s (%(name)s) %(message)s")
 
@@ -43,7 +43,7 @@ def stopTorrent(msg):
     try:
         cmd = "deluge-console pause " + args.torrent_id
         subprocess.run(cmd.split(), check=True, text=True)
-        log.info("paused full-season torrent: " + args.torrent_name)
+        log.warning("paused torrent: " + args.torrent_name)
         pushbullet.send(["Warning: torrent paused", msg])
         sys.exit(0)
     except Exception as e:
@@ -81,17 +81,14 @@ else:
             year = yr.group(1)
             log.debug("movie year=" + str(year))
             log.debug("movie title=" + str(title))
+            netflix = netflixcheck.find(title)
+            log.debug("is '" + title + "' on netflix? " + str(netflix))
+            if netflix:
+                stopTorrent(args.torrent_name + " appears to be available on Netflix")
+                sys.exit(0)
         else:
             log.debug("can't parse title/year from '" + cleanname + "'")
         
-        netflix = justwatch.find(title)
-        log.debug("is '" + title + "' on netflix? " + str(netflix))
-
-        if netflix:
-            stopTorrent(args.torrent_name + " appears to be available on Netflix")
-            sys.exit(0)
-
-        # finish this ^
         # also maybe check that it's not already in the library?
 
 log.info("passed torrent " + args.torrent_name)
