@@ -69,7 +69,6 @@ except AttributeError as ae:
 
 # set logging
 log = logging.getLogger("")
-log.setLevel("INFO")
 LOG_FILE = "/var/log/sort.log"
 if windows:
     LOG_FILE = "sort.log"
@@ -108,6 +107,8 @@ except FileNotFoundError as e:
 log = logging.getLogger("")
 if (data):
     log.setLevel(data["config"]["logLevel"])
+else:
+    log.setLevel("INFO")
 
 # function to check if a path is valid
 def dir_path(string):
@@ -200,6 +201,13 @@ for root, dirs, files in os.walk(source_dir, topdown=True):
             s = requests.Session() # for tvdb/tmdb api calls
             s.headers.update({"Accept": "application/json", "Content-Type": "application/json", "User-Agent": "Mozilla/5.0"})
             r = s.post(url, data=params)
+
+            # check for errors from tvdb api
+            if "Response [5" in str(r):
+                log.error(str(r))
+                pushbullet.send(["TVDB API Error", str(r) + "\\nUnable to sort media at this time.\\n\\n" + str(name)])
+                sys.exit (0)
+
             tvdbToken = json.loads(r.text)["token"]
             s.headers.update({"Authorization": "Bearer " + tvdbToken})
 
@@ -322,7 +330,7 @@ for root, dirs, files in os.walk(source_dir, topdown=True):
                         msg = ["Sort Error", "Can't find movie '" + str(title) + "' in TMDb"]
                         mediaFound = False
                         log.warning(str(msg))
-                        
+
                 pushbullet.send(msg, notify)
                     
             else:
@@ -556,6 +564,7 @@ for root, dirs, files in os.walk(source_dir, topdown=True):
                     log.error("ERROR: " + str(e))
                     raise
 
-    log.info("=================")
-log.setLevel(logging.INFO)
+    
+# log.setLevel(logging.INFO)
 log.info("~~~ sort completed, happy watching ~~~")
+log.info("=================")
