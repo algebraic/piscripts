@@ -156,7 +156,7 @@ if overwrite:
 # function to replace special characters
 def stripChars(string):
     separator = "-"
-    return re.sub('[^\w^\'^\(^\)\-_\. &,:]', separator, string)
+    return re.sub(r'[^\w^\'^\(^\)\-_\. &,:]', separator, string)
 
 # set folders
 if windows:
@@ -223,12 +223,12 @@ for root, dirs, files in os.walk(source_dir, topdown=True):
             log.debug("file cleanname: '" + cleanname + "'")
 
             # try to extract season/episode info from filename
-            epdata = re.search('(S(\d+)E(\d+)(?:-E(\d{2})|-(\d{2}))?)', cleanname, re.IGNORECASE)
+            epdata = re.search(r'(S(\d+)E(\d+)(?:-E(\d{2})|-(\d{2}))?)', cleanname, re.IGNORECASE)
             if (str(epdata) == "None"):
                 # it's a movie
                 log.debug("file '" + cleanname + "' looks like a movie")
                 try:
-                    yr = re.search('[\(|\[|" "](\d{4})[\)|\]|" "]', cleanname, re.IGNORECASE)
+                    yr = re.search(r'[\(|\[|" "](\d{4})[\)|\]|" "]', cleanname, re.IGNORECASE)
                     title = cleanname.split(yr.group(0), 1)[0].strip()
                     year = yr.group(1)
                     log.debug("movie year=" + str(year))
@@ -479,9 +479,9 @@ for root, dirs, files in os.walk(source_dir, topdown=True):
                 if bool(episode2Info):
                     ep2name = episode2Info["data"][0]["episodeName"]
                     log.debug("multipart, episode 2 name:" + ep2name)
-                    if re.sub("\(\d\)", "", epname).strip().lower() == re.sub("\(\d\)", "", ep2name).strip().lower():
+                    if re.sub(r"\(\d\)", "", epname).strip().lower() == re.sub(r"\(\d\)", "", ep2name).strip().lower():
                         # episodes have the same name but number in parentheses, like "Orientation (1)" and "Orientation (2)", just add both numbers
-                        episodeName = re.sub("\(\d\)", "", epname).strip() + " (" + e_num + "-" + e_num2 + ")"
+                        episodeName = re.sub(r"\(\d\)", "", epname).strip() + " (" + e_num + "-" + e_num2 + ")"
                     else:
                         # episodes have different names, add both names
                         episodeName = epname + "-" + ep2name
@@ -494,8 +494,8 @@ for root, dirs, files in os.walk(source_dir, topdown=True):
                 
                 newname = shortname + ext
                 
-                path = os.path.join(re.sub('[^\w^\'^\(^\)\-_\. &,]', '', tmdbname), "Season " + str(s_num) + os.path.sep)
-                newname = re.sub('[^\w^\'^\(^\)\-_\.\: &,]', '-', newname) # replace special characters with underscore
+                path = os.path.join(re.sub(r'[^\w^\'^\(^\)\-_\. &,]', '', tmdbname), "Season " + str(s_num) + os.path.sep)
+                newname = re.sub(r'[^\w^\'^\(^\)\-_\.\: &,]', '-', newname) # replace special characters with underscore
                 log.debug("renaming file to '" + newname + "'")
 
                 # if show/season path doesn't exist, create it
@@ -566,4 +566,4 @@ for root, dirs, files in os.walk(source_dir, topdown=True):
     
 # log.setLevel(logging.INFO)
 log.debug("~~~ sort completed, happy watching ~~~")
-log.info("=================")
+log.debug("=================")
