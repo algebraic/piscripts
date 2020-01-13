@@ -171,9 +171,9 @@ else:
 # check for alternate source
 if args.path:
     source_dir = args.path
-    log.info("using alternate source folder: " + args.path)
+    log.debug("using alternate source folder: " + args.path)
 
-log.info("~~~ begin sorting" + overwrite_msg + ": start checking source folder ~~~")
+log.debug("~~~ begin sorting" + overwrite_msg + ": start checking source folder ~~~")
 
 # check if paths are valid
 try:
@@ -187,7 +187,7 @@ for root, dirs, files in os.walk(source_dir, topdown=True):
     mediaFound = False
     skipped = False
     folder = root
-    log.info("checking folder " + folder)
+    log.debug("checking folder " + folder)
 
     for name in files:
         # check extensions first
@@ -289,8 +289,7 @@ for root, dirs, files in os.walk(source_dir, topdown=True):
 
                         if title.lower() != movie["title"].lower():
                             # just an fyi check, as with "This Is Your Death"/"The Show", working title/actual title - warn in case of name changes
-                            msg = ["Sort name discrepancey", "Name in file is different than tmdb name: '" + title + "' vs '" + movie["title"] + "' - https://www.themoviedb.org/movie/" + str(movie["id"])]
-                            log.info(str(msg))
+                            log.info("Sort name discrepancy, name in file is different than tmdb name: '" + title + "' vs '" + movie["title"] + "' - https://www.themoviedb.org/movie/" + str(movie["id"]))
                             
                         log.debug("movie appears to be '" + movie["title"] + "' - https://www.themoviedb.org/movie/" + str(movie["id"]))
                         # if movie path doesn't exist, create it
@@ -363,7 +362,7 @@ for root, dirs, files in os.walk(source_dir, topdown=True):
                     
                     if multipart:
                         e_num2 = str(int(epdata.group(4))).strip()
-                        log.info("File '" + cleanname + "' is a multipart episode - " + e_num + " & " + e_num2)
+                        log.debug("File '" + cleanname + "' is a multipart episode - " + e_num + " & " + e_num2)
                 except AttributeError:
                     showname = "can't parse show name"
                     s_num = "can't parse season number"
@@ -373,7 +372,7 @@ for root, dirs, files in os.walk(source_dir, topdown=True):
                 isReplaced = False
                 for key in data["nameReplace"].keys():
                     if showname.lower() == key.lower():
-                        log.info("replacing show name '" + str(showname) + "' with '" + str(data["nameReplace"].get(key)) + "'")
+                        log.debug("replacing show name '" + str(showname) + "' with '" + str(data["nameReplace"].get(key)) + "'")
                         showname = data["nameReplace"].get(key)
                         isReplaced = True
 
@@ -385,7 +384,7 @@ for root, dirs, files in os.walk(source_dir, topdown=True):
                         # set showid and tmdbname accordingly
                         showid = data["forceId"].get(key)
                         tmdbname = key
-                        log.info("using show id " + showid + " for " + showname)
+                        log.debug("using show id " + showid + " for " + showname)
                         isForced = True
 
                 if isForced is False:
@@ -408,7 +407,7 @@ for root, dirs, files in os.walk(source_dir, topdown=True):
                                 showid = show["id"]
                                 showname = show["seriesName"]
                                 isReplaced = True
-                                log.info("multiple shows found, it appears to be " + str(show["seriesName"]) + " (" + str(showid) + ")")
+                                log.debug("multiple shows found, it appears to be " + str(show["seriesName"]) + " (" + str(showid) + ")")
                                 break
 
                         if showid is None:
@@ -428,13 +427,13 @@ for root, dirs, files in os.walk(source_dir, topdown=True):
                 # check for episode offset
                 if tmdbname in data["advanced"]["offset"]["episode"]:
                     offset = data["advanced"]["offset"]["episode"][tmdbname]
-                    log.info("offsetting " + tmdbname + " episode numbers by " + str(offset))
+                    log.debug("offsetting " + tmdbname + " episode numbers by " + str(offset))
                     e_num = int(e_num) + int(offset)
                 
                 # check for season offset
                 if tmdbname in data["advanced"]["offset"]["season"]:
                     offset = data["advanced"]["offset"]["season"][tmdbname]
-                    log.info("offsetting " + tmdbname + " season numbers by " + str(offset))
+                    log.debug("offsetting " + tmdbname + " season numbers by " + str(offset))
                     s_num = int(s_num) + int(offset)
 
                 # get show episode from tvdb by showid
@@ -491,7 +490,7 @@ for root, dirs, files in os.walk(source_dir, topdown=True):
                 episodeName = str(unidecode(episodeName))
                 
                 shortname = tmdbname + " " + epdata_str + " - " + str(unidecode(episodeName))
-                log.info("shortname = " + shortname)
+                log.debug("shortname = " + shortname)
                 
                 newname = shortname + ext
                 
@@ -545,13 +544,13 @@ for root, dirs, files in os.walk(source_dir, topdown=True):
                     log.error(e)
                     raise
         else:
-            log.info("skipping " + ext + " file - '" + name + "'")
+            log.debug("skipping " + ext + " file - '" + name + "'")
 
     if not skipped:
         if not mediaFound:
-            log.info("skipping folder, no media identified")
+            log.debug("skipping folder, no media identified")
         elif folder != source_dir and data["config"]["cleanup"] is True:
-            log.info("cleanup, deleting " + deleteFolder)
+            log.debug("cleanup, deleting " + deleteFolder)
             shutil.rmtree(deleteFolder, ignore_errors=True)
 
     # double check source_dir for any empty folders & remove 'em
@@ -566,5 +565,5 @@ for root, dirs, files in os.walk(source_dir, topdown=True):
 
     
 # log.setLevel(logging.INFO)
-log.info("~~~ sort completed, happy watching ~~~")
+log.debug("~~~ sort completed, happy watching ~~~")
 log.info("=================")
