@@ -108,7 +108,7 @@ log = logging.getLogger("")
 if (data):
     log.setLevel(data["config"]["logLevel"])
 else:
-    log.setLevel("INFO")
+    log.setLevel("DEBUG")
 
 # function to check if a path is valid
 def dir_path(string):
@@ -307,12 +307,15 @@ for root, dirs, files in os.walk(source_dir, topdown=True):
                             
                             if moveit:
                                 shutil.move(os.path.join(root, name), destFile)
-                                overview = str(unidecode(movie["overview"]))
-                                url = "https://www.themoviedb.org/movie/" + str(movie["id"])
-                                msg = ["New Movie: " + newname, url]
+                                if ext == '.srt':
+                                    msg = ["Subtitles Available", "Subtitles added for " + str(newname)]
+                                else:
+                                    overview = str(unidecode(movie["overview"]))
+                                    url = "https://www.themoviedb.org/movie/" + str(movie["id"])
+                                    msg = ["New Movie: " + newname, url]
+                                    if data["advanced"]["notifications"]["verbose-movies"]:
+                                        msg[1] = overview + "\\n" + url
                                 log.info(str(msg))
-                                if data["advanced"]["notifications"]["verbose-movies"]:
-                                    msg[1] = overview + "\\n" + url
                             else:
                                 msg = ["Sort Duplicate", "Skipping folder, file already exists: \\n" + str(destFile).replace("\\","\\\\")]
                                 mediaFound = False
