@@ -50,8 +50,10 @@ def send(msg, notify = True):
             request = session.post(pburl, data=pbdata)
             log.debug("pushbullet response = " + str(request))
             if request.status_code == 400:
-                log.error("error code 400")
-                pbdata = '{"type": "note", "title":"Sort Error", "body":"script hit an error in sending"}'
+                log.error("pushbullet error code 400, retrying...")
                 request = session.post(pburl, data=pbdata)
+                if request.status_code == 400:
+                    pbdata = '{"type": "note", "title":"Sort Error", "body":"script hit an error in sending"}'
+                    request = session.post(pburl, data=pbdata)
         except Exception as e:
             log.error("error sending message: " + str(msg) + " - error:" + str(e))
