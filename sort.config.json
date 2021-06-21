@@ -1,0 +1,80 @@
+{
+    "config": {
+        "pi_src": "/mnt/wd500/completed/",
+        "pi_tv": "/mnt/plex-nas/tv/",
+        "pi_movie": "/mnt/plex-nas/movies/",
+        "win_src": "\\\\?\\C:\\Users\\johnsonz2\\Downloads\\sort-test\\source\\",
+        "win_tv": "\\\\?\\C:\\\\Users\\johnsonz2\\Downloads\\sort-test\\dest\\tv\\",
+        "win_movie": "\\\\?\\C:\\Users\\johnsonz2\\Downloads\\sort-test\\dest\\movies\\",
+        "logLevel": "INFO",
+        "overwrite": false,
+        "cleanup": true,
+        "mediaExts": [
+            ".mp4",
+            ".avi",
+            ".mkv",
+            ".m4v",
+            ".srt"
+        ]
+    },
+    "nameReplace": {
+        "DC's Legends of Tomorrow": "Legends of Tomorrow",
+        "DCs Legends of Tomorrow": "Legends of Tomorrow",
+        "Greys Anatomy": "Grey's Anatomy",
+        "Marvel's Agents of S H I E L D": "Marvel's Agents of SHIELD",
+        "Marvels Agents of S H I E L D": "Marvel's Agents of SHIELD",
+        "marvels spider man": "Marvel's Spider-Man",
+        "Riverdale US": "Riverdale",
+        "Saturday Night Live": "SNL",
+        "The Flash 2014": "The Flash",
+        "The Flash (2014)": "The Flash",
+        "marvels spider-man": "Marvel's Spider-Man",
+        "Doctor Who (2005)": "Doctor Who",
+        "Doctor Who 2005": "Doctor Who",
+        "workin moms": "Workin' Moms",
+	"Titans 2018": "Titans (2018)",
+	"Nancy Drew": "Nancy Drew (2019)",
+	"Friends (1994)": "Friends"
+    },
+    "forceId": {
+        "Legends of Tomorrow": "295760",
+        "Marvel's Agents of SHIELD": "263365",
+        "SNL": "76177",
+        "Splitting Up Together": "328595",
+        "The Flash": "279121",
+        "The Office": "73244",
+        "Will & Grace": "71814",
+	"Doctor Who": "78804",
+	"Titans (2018)": "341663",
+	"Raised by Wolves": "368643",
+	"The League (2009)": "114701"
+    },
+    "advanced": {
+        "notifications": {
+            "shows_list": [
+                "The Flash",
+                "Gotham",
+                "Legends of Tomorrow",
+                "Arrow",
+                "Grey's Anatomy",
+                "Outlander"
+            ],
+            "notify": true,
+            "pburl": "https://api.pushbullet.com/v2/pushes",
+            "pbtoken": "o.vw5MjjLvdjB7pgOguRDRlpgqwLKfxdJi",
+            "verbose-movies": true,
+            "verbose-tv": true
+        },
+        "offset": {
+            "episode": {},
+            "season": {
+                "Talking Dead": "-1"
+            }
+        },
+        "triggercmd": {
+            "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJib29rbWFya3VzZXJfaWQiOiI1YjY5YjQ3ZjQxZjY5NTAwMWI2ZjE4OWEiLCJjb21wdXRlcl9pZCI6IjViNzJlN2M3Y2QwOTk3MDAxYTBjZGFmZCIsImNvbW1hbmRfaWQiOiI1Y2MzNjYyM2MyMzA0MjAwMTdmNGQ3NmMiLCJleHBpcmVzSW5TZWNvbmRzIjowLCJpYXQiOjE1NTY1Njc0MzF9.UqBYLpCrct3RJiuUY3Z6dQZ2rL13_W5DsteUL_fTQjw",
+            "autodownload": false
+        }
+    },
+    "savedfileid": "18m6x4igKJKVguWxu5iXs66EqkZ_zcDuQ"
+}
