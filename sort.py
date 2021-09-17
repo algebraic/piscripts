@@ -174,6 +174,7 @@ if args.path:
     log.debug("using alternate source folder: " + args.path)
 
 log.debug("~~~ begin sorting" + overwrite_msg + ": start checking source folder ~~~")
+log.info("sort starting")
 
 # check if paths are valid
 try:
