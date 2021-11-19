@@ -8,11 +8,11 @@ changelog
 03052019 - added a season offset capability like episode offset (for talking dead)
 04052019 - put all this junk in github :)
 08142019 - using Unidecode (https://pypi.org/project/Unidecode/) to handle episode/movie names with special characters
+11192021 - adding an always-delete feature, like for 'RARBG_DO_NOT_MIRROR.exe' kinda crap
+
 
 todo
 # check if something is on netflix before downloading?
-# maybe tinyurl the links in notifications?
-# make windows folders less stupid
 # see about omitting previously caught confusing files and skip them subsequently if they're still around?
 # consolidate all messages into a single output at the end, just set variables along the way?
 
@@ -26,13 +26,13 @@ weird episode titles to check:
 
 weird movie titles...
 I think it's just looking for \d{4} for year, but like "Bladerunner 2049 (2017)" totally screws it up...
-maybe change that to look for \d{4} ONLY within parenthesis in case a title has a year in it
+maybe change that to look for \(\d{4}\) -- ONLY within parenthesis -- in case a title has a year in it
 
 multipart episodes may need some work...
 currently if both episodes have the same name then it's renamed to
     'Marvels Agents of SHIELD S05E01-E02 - Orientation (1-2).mkv'
 if names are different then it catches both titles
-    
+
 known issue: deleting valid files when show incorrectly matches
 		- as with Legit
              Legit (Jim Jefferies) matches with a BBC show by the same name, non-matched episodes
@@ -106,7 +106,8 @@ except FileNotFoundError as e:
 # set logging level
 log = logging.getLogger("")
 if (data):
-    log.setLevel(data["config"]["logLevel"])
+    #log.setLevel(data["config"]["logLevel"])
+    log.setLevel("DEBUG")
 else:
     log.setLevel("DEBUG")
 
@@ -586,14 +587,19 @@ for root, dirs, files in os.walk(source_dir, topdown=True):
                     log.error(e)
                     raise
         else:
-            log.debug("skipping " + ext + " file - '" + name + "'")
+            if name in data["config"]["deleteFileNames"]:
+                log.debug("deleting garbage file " + os.path.join(root, name))
+                os.remove(os.path.join(root, name))
+                log.debug("folder now empty? " + len(os.listdir(root)))
+            else:
+                log.debug("skipping " + ext + " file - '" + name + "'")
 
     if not skipped:
         if not mediaFound:
             log.debug("skipping folder, no media identified")
         elif folder != source_dir and data["config"]["cleanup"] is True and not args.test:
             log.debug("cleanup, deleting " + deleteFolder)
-            #shutil.rmtree(deleteFolder, ignore_errors=True)
+            shutil.rmtree(deleteFolder, ignore_errors=True)
 
     # double check source_dir for any empty folders & remove 'em
     if data["config"]["cleanup"] is True:

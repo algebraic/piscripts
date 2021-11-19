@@ -14,6 +14,11 @@
             ".avi",
             ".mkv",
             ".m4v"
+        ],
+        "deleteFileNames": [
+            "RARBG_DO_NOT_MIRROR.exe",
+            "RARBG.txt",
+            "2_English.srt"
         ]
     },
     "nameReplace": {
