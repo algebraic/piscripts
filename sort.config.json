@@ -1,6 +1,6 @@
 {
     "config": {
-        "pi_src": "/mnt/wd500/completed/",
+        "pi_src": "/mnt/torrents/completed/",
         "pi_tv": "/mnt/plex-nas/tv/",
         "pi_movie": "/mnt/plex-nas/movies/",
         "win_src": "\\\\?\\C:\\Users\\johnsonz2\\Downloads\\sort-test\\source\\",
@@ -13,8 +13,7 @@
             ".mp4",
             ".avi",
             ".mkv",
-            ".m4v",
-            ".srt"
+            ".m4v"
         ]
     },
     "nameReplace": {
@@ -47,7 +46,11 @@
 	"Doctor Who": "78804",
 	"Titans (2018)": "341663",
 	"Raised by Wolves": "368643",
-	"The League (2009)": "114701"
+	"The League (2009)": "114701",
+	"He-Man": "73014",
+	"Titans": "341663",
+	"Yellowstone 2018": "341164",
+	"Dexter": "412366"
     },
     "advanced": {
         "notifications": {
@@ -68,7 +71,8 @@
         "offset": {
             "episode": {},
             "season": {
-                "Talking Dead": "-1"
+                "Talking Dead": "-1",
+		        "Dexter": "-8"
             }
         },
         "triggercmd": {
