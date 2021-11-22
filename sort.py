@@ -9,6 +9,7 @@ changelog
 04052019 - put all this junk in github :)
 08142019 - using Unidecode (https://pypi.org/project/Unidecode/) to handle episode/movie names with special characters
 11192021 - adding an always-delete feature, like for 'RARBG_DO_NOT_MIRROR.exe' kinda crap
+11222021 - ^-- always deleting *.nfo, folders were lying around otherwise
 
 
 todo
@@ -587,10 +588,10 @@ for root, dirs, files in os.walk(source_dir, topdown=True):
                     log.error(e)
                     raise
         else:
-            if name in data["config"]["deleteFileNames"]:
+            if name in data["config"]["deleteFileNames"] or name.endswith('.nfo'):
                 log.debug("deleting garbage file " + os.path.join(root, name))
                 os.remove(os.path.join(root, name))
-                log.debug("folder now empty? " + len(os.listdir(root)))
+                log.debug("folder now empty? " + str(len(os.listdir(root))))
             else:
                 log.debug("skipping " + ext + " file - '" + name + "'")
 
