@@ -107,8 +107,7 @@ except FileNotFoundError as e:
 # set logging level
 log = logging.getLogger("")
 if (data):
-    #log.setLevel(data["config"]["logLevel"])
-    log.setLevel("DEBUG")
+    log.setLevel(data["config"]["logLevel"])
 else:
     log.setLevel("DEBUG")
 
