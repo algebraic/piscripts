@@ -1,8 +1,8 @@
 {
     "config": {
         "pi_src": "/mnt/torrents/completed/",
-        "pi_tv": "/mnt/plex-nas/tv/",
-        "pi_movie": "/mnt/plex-nas/movies/",
+        "pi_tv": "/mnt/tv/",
+        "pi_movie": "/mnt/movies/",
         "win_src": "\\\\?\\C:\\Users\\johnsonz2\\Downloads\\sort-test\\source\\",
         "win_tv": "\\\\?\\C:\\\\Users\\johnsonz2\\Downloads\\sort-test\\dest\\tv\\",
         "win_movie": "\\\\?\\C:\\Users\\johnsonz2\\Downloads\\sort-test\\dest\\movies\\",
@@ -13,7 +13,8 @@
             ".mp4",
             ".avi",
             ".mkv",
-            ".m4v"
+            ".m4v",
+            ".srt"
         ],
         "deleteFileNames": [
             "RARBG_DO_NOT_MIRROR.exe",
@@ -36,9 +37,11 @@
         "Doctor Who (2005)": "Doctor Who",
         "Doctor Who 2005": "Doctor Who",
         "workin moms": "Workin' Moms",
-	"Titans 2018": "Titans (2018)",
-	"Nancy Drew": "Nancy Drew (2019)",
-	"Friends (1994)": "Friends"
+        "Titans 2018": "Titans (2018)",
+        "Nancy Drew": "Nancy Drew (2019)",
+        "Friends (1994)": "Friends",
+        "invincible 2021": "Invincible",
+        "peacemaker 2022": "Peacemaker"
     },
     "forceId": {
         "Legends of Tomorrow": "295760",
@@ -48,14 +51,22 @@
         "The Flash": "279121",
         "The Office": "73244",
         "Will & Grace": "71814",
-	"Doctor Who": "78804",
-	"Titans (2018)": "341663",
-	"Raised by Wolves": "368643",
-	"The League (2009)": "114701",
-	"He-Man": "73014",
-	"Titans": "341663",
-	"Yellowstone 2018": "341164",
-	"Dexter": "412366"
+        "Doctor Who": "78804",
+        "Titans (2018)": "341663",
+        "Raised by Wolves": "368643",
+        "The League (2009)": "114701",
+        "He-Man": "73014",
+        "Titans": "341663",
+        "Yellowstone 2018": "341164",
+        "Dexter": "412366",
+        "Star Trek Voyager": "74550",
+        "Star Trek Enterprise": "73893",
+        "Invincible": "368207",
+        "Big Sky": "378023",
+        "Star Trek The Original Series": "77526",
+        "What If 2021": "367147",
+        "What If": "367147",
+        "Peacemaker": "391153"
     },
     "advanced": {
         "notifications": {
@@ -68,16 +79,16 @@
                 "Outlander"
             ],
             "notify": true,
-            "pburl": "https://api.pushbullet.com/v2/pushes",
-            "pbtoken": "o.vw5MjjLvdjB7pgOguRDRlpgqwLKfxdJi",
             "verbose-movies": true,
-            "verbose-tv": true
+            "verbose-tv": true,
+            "simplepush-key": "wL86KC",
+            "simplepush-url": "https://api.simplepush.io/send"
         },
         "offset": {
             "episode": {},
             "season": {
                 "Talking Dead": "-1",
-		        "Dexter": "-8"
+                "Dexter": "-8"
             }
         },
         "triggercmd": {

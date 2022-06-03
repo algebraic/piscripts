@@ -44,7 +44,7 @@ maybe logging junk too?
 '''
 
 import requests, os, re, json, logging, sys, errno, shutil, smtplib, argparse, time
-import pushbullet
+import simplepush
 from pathlib import Path
 from requests.auth import HTTPDigestAuth
 from os.path import join, getsize
@@ -197,9 +197,9 @@ for root, dirs, files in os.walk(source_dir, topdown=True):
     if len(files) > 4:
         log.info("")
         tooManyMessages = True
-        msg = ["Heads Up", "Processing " + str(len(files)) + " files from " + str(root.split(os.path.sep)[-2]) + os.path.sep + str(root.split(os.path.sep)[-1])]
+        msg = ["Heads Up", "Processing " + str(len(files)) + " files from " + str(root.split(os.path.sep)[-2]) + os.path.sep + str(root.split(os.path.sep)[-1]), "newSeason"]
         log.info(str(msg))
-        pushbullet.send(msg, notify)
+        simplepush.ppushitrealgood(msg, notify)
 
     for name in files:
         # check extensions first
@@ -218,7 +218,7 @@ for root, dirs, files in os.walk(source_dir, topdown=True):
             if "Response [5" in str(r):
                 log.error(str(r))
                 if not tooManyMessages:
-                    pushbullet.send(["TVDB API Error", str(r) + "\\nUnable to sort media at this time.\\n\\n" + str(name)])
+                    simplepush.ppushitrealgood(["TVDB API Error", str(r) + "Unable to sort media at this time. " + str(name)])
                 sys.exit (0)
 
             tvdbToken = json.loads(r.text)["token"]
@@ -259,11 +259,11 @@ for root, dirs, files in os.walk(source_dir, topdown=True):
                     year = None
                     title = None
                     mediaFound = False
-                    msg = ["Sort Error", "Can't parse movie name/year for " + name]
+                    msg = ["Sort Error", "Can't parse movie name/year for " + name, "sortError"]
                     log.warning(str(msg))
                     if not tooManyMessages:
                         log.info(str(msg))
-                        pushbullet.send(msg, notify)
+                        simplepush.ppushitrealgood(msg, notify)
                     continue
 
                 # using themoviedb api for movies
@@ -277,22 +277,22 @@ for root, dirs, files in os.walk(source_dir, topdown=True):
                 
                 try:
                     if r.status_code != 200:
-                        msg = ["Sort Error", "Unable to query TMDb"]
+                        msg = ["Sort Error", "Unable to query TMDb", "sortError"]
                     else:
                         movielist = json.loads(r.text)
                 except json.decoder.JSONDecodeError:
-                    msg = ["Sort Error", "themoviedb JSONDecodeError"]
+                    msg = ["Sort Error", "themoviedb JSONDecodeError", "sortError"]
                 except AttributeError:
-                    msg = ["Sort Error", "themoviedb AttributeError"]
+                    msg = ["Sort Error", "themoviedb AttributeError", "sortError"]
                 except NameError:
-                    msg = ["Sort Error", "themoviedb NameError"]
+                    msg = ["Sort Error", "themoviedb NameError", "sortError"]
                 except Exception:
-                    msg = ["Sort Error", "themoviedb Exception"]
+                    msg = ["Sort Error", "themoviedb Exception", "sortError"]
 
                 movie = None
                 if movielist is None:
                     error = json.loads(r.text)
-                    errormsg = ["Sort Error (" + str(r.status_code) + ")","themoviedb returned null for " + str(title) + " " + str(year)]
+                    errormsg = ["Sort Error (" + str(r.status_code) + ")","themoviedb returned null for " + str(title) + " " + str(year), "sortError"]
                     log.error(msg[1] + " (code " + str(r.status_code) + ")")
                     msg = errormsg
                     mediaFound = False
@@ -338,34 +338,34 @@ for root, dirs, files in os.walk(source_dir, topdown=True):
                                     shutil.move(os.path.join(root, name), destFile)
 
                                 if ext == '.srt':
-                                    msg = [testmode + "Subtitles Available", "Subtitles added for " + str(newname)]
+                                    msg = [testmode + "Subtitles Available", "Subtitles added for " + str(newname), "newMedia"]
                                 else:
                                     overview = str(unidecode(movie["overview"]))
                                     url = "https://www.themoviedb.org/movie/" + str(movie["id"])
-                                    msg = [testmode + "New Movie: " + newname, url]
+                                    msg = [testmode + "New Movie: " + newname, url, "newMedia"]
                                     if data["advanced"]["notifications"]["verbose-movies"]:
-                                        msg[1] = overview + "\\n" + url
+                                        msg[1] = overview + " " + url
                             else:
-                                msg = [testmode + "Sort Duplicate", "Skipping folder, file already exists: \\n" + str(destFile).replace("\\","\\\\")]
+                                msg = [testmode + "Sort Duplicate", "Skipping folder, file already exists: " + str(destFile).replace("\\","\\\\"), "duplicateMedia"]
                                 mediaFound = False
                                 skipped = True
                                 if not tooManyMessages:
                                     log.warning(str(msg))
-                                    pushbullet.send(msg, notify)
+                                    simplepush.ppushitrealgood(msg, notify)
                                 continue
                         except OSError as e:
-                            msg = [testmode + "Sort Error", "Error " + str(e.errno) + " (" + str(e.errno == errno.ENOENT) + ")"]
+                            msg = [testmode + "Sort Error", "Error " + str(e.errno) + " (" + str(e.errno == errno.ENOENT) + ")", "sortError"]
                             log.error(str(msg))
                             log.error(e)
                             raise
                     else:
-                        msg = [testmode + "Sort Error", "Can't find movie '" + str(title) + "' in TMDb"]
+                        msg = [testmode + "Sort Error", "Can't find movie '" + str(title) + "' in TMDb", "sortError"]
                         mediaFound = False
                         log.warning(str(msg))
 
                 if not tooManyMessages:
                     log.info(str(msg))
-                    pushbullet.send(msg, notify)
+                    simplepush.ppushitrealgood(msg, notify)
                     
             else:
                 # it's a tv show
@@ -430,10 +430,10 @@ for root, dirs, files in os.walk(source_dir, topdown=True):
                     r = s.get(url)
                     showlist = json.loads(r.text)
                     if "Error" in showlist:
-                        msg = ["Sort Error", "Can't find show name for '" + showname + "', try searching on tvdb manually"]
+                        msg = ["Sort Error", "Can't find show name for '" + showname + "', try searching on tvdb manually", "sortError"]
                         log.warning(str(msg))
                         if not tooManyMessages:
-                            pushbullet.send(msg, notify)
+                            simplepush.ppushitrealgood(msg, notify)
                         mediaFound = False
                         continue
                     elif "data" in showlist and len(showlist["data"]) > 1:
@@ -447,10 +447,10 @@ for root, dirs, files in os.walk(source_dir, topdown=True):
                                 break
 
                         if showid is None:
-                            msg = ["Sort Error", "Can't find exact show name for '" + showname + "' - " + str(len(showlist["data"])) + " shows found, try replacing name or forcing id"]
+                            msg = ["Sort Error", "Can't find exact show name for '" + showname + "' - " + str(len(showlist["data"])) + " shows found, try replacing name or forcing id", "sortError"]
                             log.warning(str(msg))
                             if not tooManyMessages:
-                                pushbullet.send(msg, notify)
+                                simplepush.ppushitrealgood(msg, notify)
                             mediaFound = False
                             continue
                     else:
@@ -492,10 +492,10 @@ for root, dirs, files in os.walk(source_dir, topdown=True):
 
                 if r.status_code != 200 or (bool(r2) and r2.status_code != 200):
                     # show isn't queryable, some bit of info is off
-                    msg = ["Sort Error", "TVDB returned a " + str(r.status_code) + " for " + str(tmdbname) + ", problem with showid (" + str(showid) + "), season num (" + str(s_num) + "), or episode num (" + str(e_num) + ")"]
+                    msg = ["Sort Error", "TVDB returned a " + str(r.status_code) + " for " + str(tmdbname) + ", problem with showid (" + str(showid) + "), season num (" + str(s_num) + "), or episode num (" + str(e_num) + ")", "sortError"]
                     log.warning(str(msg))
                     if not tooManyMessages:
-                        pushbullet.send(msg, notify)
+                        simplepush.ppushitrealgood(msg, notify)
                     #log.warning("tvdb returned a 404 for " + str(tmdbname) + ", problem with showid (" + str(showid) + "), season # (" + str(s_num) + "), or episode # (" + str(e_num) + ")")
                     mediaFound = False
                     continue
@@ -537,9 +537,11 @@ for root, dirs, files in os.walk(source_dir, topdown=True):
                 log.debug("renaming file to '" + newname + "'")
 
                 # if show/season path doesn't exist, create it
-                if not os.path.exists(os.path.join(tv_dir, path)):
-                    log.debug("creating folders: " + path)
-                    os.makedirs(os.path.join(tv_dir, path))
+                log.info("### args.test = " + str(args.test))
+                if not args.test:
+                    if not (os.path.exists(os.path.join(tv_dir, path))):
+                        log.debug("creating folders: " + path)
+                        os.makedirs(os.path.join(tv_dir, path))
 
                 # rename & move file
                 testmode = ""
@@ -557,7 +559,7 @@ for root, dirs, files in os.walk(source_dir, topdown=True):
 
                         url = "https://www.thetvdb.com/?tab=episode&seriesid=" + str(showid) + "&seasonid=" + str(episodeInfo["data"][0]["airedSeasonID"]) + "&id=" + str(episodeInfo["data"][0]["id"])
 
-                        msg = [testmode + "New Episode of " + tmdbname, epdata_str + " - " + episodeName + "\\n" + url]
+                        msg = [testmode + "!New Episode of " + tmdbname, epdata_str + " - " + episodeName + " - " + url, 'newMedia']
 
                         # check if show is set to verbose
                         verbosetv = data["advanced"]["notifications"]["verbose-tv"]
@@ -572,18 +574,18 @@ for root, dirs, files in os.walk(source_dir, topdown=True):
                             url = "https://www.themoviedb.org/tv/" + str(tmdbid) + "/season/" + str(s_num) + "/episode/" + str(e_num)
                             overview = str(unidecode(episodeInfo["data"][0]["overview"]))
                             # note - overview field from tvdb can contain unicode characters - message gets encoded as utf-8 in send function
-                            msg[1] = epdata_str + " - " + episodeName + "\\n" + overview + "\\n" + url
+                            msg[1] = epdata_str + " - " + episodeName + " \"" + overview + "\" " + url
                     else:
-                        msg = [testmode + "Sort Duplicate", "File already exists: \\n" + str(destFile).replace("\\","\\\\")]
+                        msg = [testmode + "Sort Duplicate", "File already exists: " + str(destFile).replace("\\","\\\\"), "duplicateMedia"]
                     
                     if not tooManyMessages:
                         log.info(str(msg))
-                        pushbullet.send(msg, notify)
+                        simplepush.ppushitrealgood(msg, notify)
                 except OSError as e:
-                    msg = [testmode + "Sort Error", "Error " + str(e.errno) + " (" + str(e.errno == errno.ENOENT) + ")"]
+                    msg = [testmode + "Sort Error", "Error " + str(e.errno) + " (" + str(e.errno == errno.ENOENT) + ")", "sortError"]
                     log.error(str(msg))
                     if not tooManyMessages:
-                        pushbullet.send(msg, notify)
+                        simplepush.ppushitrealgood(msg, notify)
                     log.error(e)
                     raise
         else:
@@ -620,4 +622,3 @@ for root, dirs, files in os.walk(source_dir, topdown=True):
 # log.setLevel(logging.INFO)
 log.debug("~~~ sort completed, happy watching ~~~")
 log.debug("=================")
-

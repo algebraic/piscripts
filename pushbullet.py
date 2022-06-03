@@ -13,8 +13,6 @@ ch = logging.StreamHandler(sys.stdout)
 ch.setFormatter(logformat)
 log.addHandler(ch)
 
-log.info("testing")
-
 # read config file
 try:
     with open('/home/pi/piscripts/sort.config.json') as json_data_file:
