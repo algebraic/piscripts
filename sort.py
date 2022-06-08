@@ -559,7 +559,7 @@ for root, dirs, files in os.walk(source_dir, topdown=True):
 
                         url = "https://www.thetvdb.com/?tab=episode&seriesid=" + str(showid) + "&seasonid=" + str(episodeInfo["data"][0]["airedSeasonID"]) + "&id=" + str(episodeInfo["data"][0]["id"])
 
-                        msg = [testmode + "!New Episode of " + tmdbname, epdata_str + " - " + episodeName + " - " + url, 'newMedia']
+                        msg = [testmode + "New Episode of " + tmdbname, epdata_str + " - " + episodeName + " - " + url, 'newMedia']
 
                         # check if show is set to verbose
                         verbosetv = data["advanced"]["notifications"]["verbose-tv"]
