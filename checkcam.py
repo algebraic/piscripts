@@ -42,7 +42,7 @@ def ping(host):
         return "NOT CONNECTED"
     
     msg = ["Camera Online", "yay, cam " + str(host) + " is online"]
-    simplepush.ppushitrealgood(msg)
+    simplepush.ppushitrealgood(msg, True)
     return "CONNECTED"
 
 hostname = '192.168.86.57' #example
