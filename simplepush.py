@@ -49,4 +49,4 @@ def ppushitrealgood(msg, notify=True):
             log.debug(request.urlopen(req));
         except IndexError as e:
             log.error(str(e))
-            log.error(msg)
+            log.error(str(msg))
