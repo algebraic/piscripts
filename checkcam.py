@@ -29,6 +29,6 @@ for attempt in range(1, max_attempts + 1):
 
         # Perform action if this is the last attempt
         if attempt == max_attempts:
-            # msg = ["Camera Offline", "driveway cam seems to be offline", ""]
-            # simplepush.ppushitrealgood(msg, True)
+            msg = ["Camera Offline", "driveway cam seems to be offline", ""]
+            simplepush.ppushitrealgood(msg, True)
             log.warning(f"Failed to ping {ip_address} after {max_attempts} attempts.")
