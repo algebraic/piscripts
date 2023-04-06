@@ -37,11 +37,11 @@ def ping(host):
     
     output = result.stdout.decode('utf8')
     if "Request timed out." in output or "100% packet loss" in output:
-        msg = ["Camera Offline", "cam " + str(host) + " seems to be offline"]
+        msg = ["Camera Offline", "cam " + str(host) + " seems to be offline", ""]
         simplepush.ppushitrealgood(msg, True)
         return "NOT CONNECTED"
     
-    msg = ["Camera Online", "yay, cam " + str(host) + " is online"]
+    msg = ["Camera Online", "yay, cam " + str(host) + " is online", ""]
     simplepush.ppushitrealgood(msg, True)
     return "CONNECTED"
 
