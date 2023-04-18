@@ -20,6 +20,8 @@ for attempt in range(1, max_attempts + 1):
     ping_process = subprocess.Popen(['ping', '-c', '1', ip_address], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
     ping_output, _ = ping_process.communicate()
 
+    log.info(str(ping_process.returncode))
+
     # Check the exit code of the ping command
     if ping_process.returncode == 0:
         log.debug(f"Successfully pinged {ip_address} on attempt {attempt}.")
