@@ -42,7 +42,7 @@ for host in hosts:
             log.info(f"Successfully pinged {host.name} cam on attempt {attempt}.")
             break  # Stop attempting if ping was successful
         else:
-            log.debug(f"Ping attempt {attempt} failed. Retrying...")
+            log.debug(f"Ping attempt {attempt} failed for {host.name} cam, retrying...")
 
             # Perform action if this is the last attempt
             if attempt == max_attempts:
