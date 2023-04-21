@@ -9,11 +9,9 @@ from logging import handlers
 # set logging
 log = logging.getLogger()
 log.setLevel(logging.DEBUG)
-logformat = logging.Formatter(
-    "%(levelname)s %(asctime)s (%(name)s) %(message)s")
+logformat = logging.Formatter("%(levelname)s %(asctime)s (%(name)s) %(message)s")
 
-fh = handlers.RotatingFileHandler(
-    "wyzecam.log", maxBytes=(1048576*5), backupCount=7)
+fh = handlers.RotatingFileHandler("wyzecam.log", maxBytes=(1048576*5), backupCount=7)
 fh.setFormatter(logformat)
 log.addHandler(fh)
 
@@ -48,6 +46,6 @@ for host in hosts:
 
             # Perform action if this is the last attempt
             if attempt == max_attempts:
-                msg = ["Camera Offline", "{host.name} cam seems to be offline", ""]
+                msg = ["Camera Offline", {host.name} + " cam seems to be offline", ""]
                 simplepush.ppushitrealgood(msg, True)
                 log.warning(f"Failed to ping {host.name} cam after {max_attempts} attempts.")
