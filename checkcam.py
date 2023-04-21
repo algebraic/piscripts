@@ -46,6 +46,6 @@ for host in hosts:
 
             # Perform action if this is the last attempt
             if attempt == max_attempts:
-                msg = ["Camera Offline", str({host.name}) + " cam seems to be offline", ""]
+                msg = ["Camera Offline", str(host.name) + " cam seems to be offline", ""]
                 simplepush.ppushitrealgood(msg, True)
                 log.warning(f"Failed to ping {host.name} cam after {max_attempts} attempts.")
