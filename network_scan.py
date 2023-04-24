@@ -1,5 +1,6 @@
 import scapy.all as scapy
 import argparse
+import socket
 
 def get_args():
     parser = argparse.ArgumentParser()
@@ -22,10 +23,19 @@ def scan(ip):
     broadcast_ether_arp_req_frame = broadcast_ether_frame / arp_req_frame
 
     answered_list = scapy.srp(broadcast_ether_arp_req_frame, timeout = 1, verbose = False)[0]
+
     result = []
     for i in range(0,len(answered_list)):
-        client_dict = {"ip" : answered_list[i][1].psrc, "mac" : answered_list[i][1].hwsrc}
-        result.append(client_dict)
+        mac = answered_list[i][1].hwsrc
+        if mac.lower().startswith("2c:aa:8e"):
+            ip = answered_list[i][1].psrc
+            client_dict = {"ip" : ip, "mac" : mac}
+            result.append(client_dict)
+            try:
+                hostname = socket.gethostbyaddr(ip)[0]
+                print(f"The device with IP address {ip} has hostname {hostname}")
+            except socket.herror:
+                print(f"No hostname found for IP address {ip}")
 
     return result
   
@@ -38,3 +48,13 @@ def display_result(result):
 options = get_args()
 scanned_output = scan(options.target)
 display_result(scanned_output)
+
+
+# wyze devices:
+# 192.168.86.21
+# 192.168.86.26
+# 192.168.86.35
+# 192.168.86.46
+# 192.168.86.66
+# 192.168.86.72
+# 192.168.86.83
