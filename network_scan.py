@@ -31,11 +31,6 @@ def scan(ip):
             ip = answered_list[i][1].psrc
             client_dict = {"ip" : ip, "mac" : mac}
             result.append(client_dict)
-            try:
-                hostname = socket.gethostbyaddr(ip)[0]
-                print(f"The device with IP address {ip} has hostname {hostname}")
-            except socket.herror:
-                print(f"No hostname found for IP address {ip}")
 
     return result
   
@@ -48,7 +43,6 @@ def display_result(result):
 options = get_args()
 scanned_output = scan(options.target)
 display_result(scanned_output)
-
 
 # wyze devices:
 # 192.168.86.21
