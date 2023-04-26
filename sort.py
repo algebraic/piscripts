@@ -233,12 +233,12 @@ for root, dirs, files in os.walk(source_dir, topdown=True):
             mediaFound = True
             deleteFolder = root
             cleanname = re.sub(r'\.', " ", os.path.splitext(name)[0]).strip()
-            
+
             # modify name for search if necessary
             cleanname = cleanname.replace("S1979 ", "S01")
             
             log.debug("file cleanname: '" + cleanname + "'")
-            
+
             ##########################################################################################
             ## differentiate between tv show and movie::
             ## try to extract season/episode info from filename
@@ -339,7 +339,7 @@ for root, dirs, files in os.walk(source_dir, topdown=True):
                                 if args.test:
                                     testmode = "TEST MODE: "
                                 else:
-                                    shutil.move(os.path.join(root, name), destFile)
+                                    shutil.copy(os.path.join(root, name), destFile)
 
                                 if ext == '.srt':
                                     msg = [testmode + "Subtitles Available", "Subtitles added for " + str(newname), "newMedia"]
@@ -559,7 +559,7 @@ for root, dirs, files in os.walk(source_dir, topdown=True):
                         if args.test:
                             testmode = "TEST MODE: "
                         else:
-                            shutil.move(os.path.join(root, name), os.path.join(tv_dir+path+newname))
+                            shutil.copy(os.path.join(root, name), os.path.join(tv_dir+path+newname))
 
                         url = "https://www.thetvdb.com/?tab=episode&seriesid=" + str(showid) + "&seasonid=" + str(episodeInfo["data"][0]["airedSeasonID"]) + "&id=" + str(episodeInfo["data"][0]["id"])
 
@@ -593,36 +593,13 @@ for root, dirs, files in os.walk(source_dir, topdown=True):
                     log.error(e)
                     raise
         else:
-            if name in data["config"]["deleteFileNames"] or name.endswith('.nfo'):
-                log.debug("deleting garbage file " + os.path.join(root, name))
-                os.remove(os.path.join(root, name))
-                log.debug("folder now empty? " + str(len(os.listdir(root))))
-            else:
-                log.debug("skipping " + ext + " file - '" + name + "'")
+            log.debug("skipping " + ext + " file - '" + name + "'")
 
     if not skipped:
         if not mediaFound:
             log.debug("skipping folder, no media identified")
         elif folder != source_dir and data["config"]["cleanup"] is True and not args.test:
-            log.debug("cleanup, deleting " + deleteFolder)
-            shutil.rmtree(deleteFolder, ignore_errors=True)
+            log.debug("seriously, stop deleting stuff")
 
-    # double check source_dir for any empty folders & remove 'em
-    if data["config"]["cleanup"] is True:
-        for root, dirs, files in os.walk(source_dir, topdown=False):
-            if len(dirs) is 0 and len(files) is 0 and root != source_dir and not args.test:
-                try:
-                    shutil.rmtree(root, ignore_errors=False)
-                except Exception as e:
-                    log.error("ERROR: " + str(e))
-                    raise
-
-#zj: 11/01/21 see about deleting specific garbage like this
-# RARBG_DO_NOT_MIRROR.exe  
-# RARBG.txt  
-# Subs (<-- that ones a directory)
-# we keep getting John Oliver folders lying around because of those 
-    
-# log.setLevel(logging.INFO)
 log.debug("~~~ sort completed, happy watching ~~~")
 log.debug("=================")

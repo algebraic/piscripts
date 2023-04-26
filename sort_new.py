@@ -233,6 +233,10 @@ for root, dirs, files in os.walk(source_dir, topdown=True):
             mediaFound = True
             deleteFolder = root
             cleanname = re.sub(r'\.', " ", os.path.splitext(name)[0]).strip()
+
+            # modify name for search if necessary
+            cleanname = cleanname.replace("S1979 ", "S01")
+            
             log.debug("file cleanname: '" + cleanname + "'")
 
             ##########################################################################################
