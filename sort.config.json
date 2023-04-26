@@ -14,7 +14,8 @@
             ".avi",
             ".mkv",
             ".m4v",
-            ".srt"
+            ".srt",
+            ".wmv"
         ],
         "deleteFileNames": [
             "RARBG_DO_NOT_MIRROR.exe",
