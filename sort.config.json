@@ -15,7 +15,8 @@
             ".mkv",
             ".m4v",
             ".srt",
-            ".wmv"
+            ".wmv",
+	    ".mpg"
         ],
         "deleteFileNames": [
             "RARBG_DO_NOT_MIRROR.exe",
@@ -42,7 +43,9 @@
         "Nancy Drew": "Nancy Drew (2019)",
         "Friends (1994)": "Friends",
         "invincible 2021": "Invincible",
-        "peacemaker 2022": "Peacemaker"
+        "peacemaker 2022": "Peacemaker",
+	"The West Wing (1999)": "The West Wing",
+	"Mike Judge's Beavis and Butt-Head": "Mike Judges Beavis and Butt-Head"
     },
     "forceId": {
         "Legends of Tomorrow": "295760",
@@ -68,7 +71,12 @@
         "What If 2021": "367147",
         "What If": "367147",
         "Peacemaker": "391153",
-        "YCDTOTV": "77217"
+        "YCDTOTV": "77217",
+	"Avengers Assemble": "264030",
+	"Love and Death": "402181",
+	"The Avengers (EMH)": "192171",
+	"X-Men TAS": "76115",
+	"Super Friends (1973)": "254222"
     },
     "advanced": {
         "notifications": {

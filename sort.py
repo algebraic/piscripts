@@ -174,6 +174,8 @@ else:
 if args.path:
     source_dir = args.path
     log.debug("using alternate source folder: " + args.path)
+    
+print("### args.path = " + str(args.path))
 
 log.debug("~~~ begin sorting" + overwrite_msg + ": start checking source folder ~~~")
 log.info("sort starting")
@@ -523,7 +525,7 @@ for root, dirs, files in os.walk(source_dir, topdown=True):
                     log.debug("multipart, episode 2 name:" + ep2name)
                     if re.sub(r"\(\d\)", "", epname).strip().lower() == re.sub(r"\(\d\)", "", ep2name).strip().lower():
                         # episodes have the same name but number in parentheses, like "Orientation (1)" and "Orientation (2)", just add both numbers
-                        episodeName = re.sub(r"\(\d\)", "", epname).strip() + " (" + e_num + "-" + e_num2 + ")"
+                        episodeName = re.sub(r"\(\d\)", "", epname).strip() + " (" + str(e_num) + "-" + str(e_num2) + ")"
                     else:
                         # episodes have different names, add both names
                         episodeName = epname + "-" + ep2name

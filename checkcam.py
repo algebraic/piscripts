@@ -23,10 +23,10 @@ class cam:
 
 
 hosts = [
-    cam("driveway", "192.168.86.57"),
+    cam("driveway", "192.168.86.57")
     # cam("deck", "192.168.86.22"),
     # zj: 042423 usb cable went bad, omitting till replaced
-    cam("living room", "192.168.86.25")
+    # cam("living room", "192.168.86.25") (oops, lr display nest cam)
 ]
 max_attempts = 4
 
