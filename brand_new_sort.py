@@ -11,17 +11,23 @@ from urllib import parse, request
 
 import requests
 
+# TODO
 # multi-part episodes
-
+# settings stuff
 # piscripts/brand_new_sort.py -p cp/'My.Adventures.with.Superman.S01E04.1080p.WEB.h264-EDITH[eztv.re].mkv'
-# piscripts/brand_new_sort.py -p cp/'My.Adventures.with.Superman.S01E05.1080p.WEB.h264-EDITH[TGx]'
-# piscripts/brand_new_sort.py -p cp/The.Office.Extended.Cut.720p.10bit.WEBRip.x265-budgetbits
-# piscripts/brand_new_sort.py -p cp/'Unknown Cave Of Bones (2023) [1080p] [WEBRip] [5.1] [YTS.MX]'
-#piscripts/brand_new_sort.py -p cp/'The Office (US) (2005) Season 1-9 S01-S09 (1080p BluRay x265 HEVC 10bit AAC 5.1 Silence)'/'Season 1'/'The Office (US) (2005) - S01E01 - Pilot (1080p BluRay x265 Silence).mkv'
+# piscripts/brand_new_sort.py -p cp/'Star.Trek.Strange.New.Worlds.S02E10.1080p.WEB.h264-ETHEL[eztv.re].mkv'
+
 def setup_logging():
     log_file = "/home/pi/piscripts/brand_new_sort.log"
+    if "log_level" in settings:
+        # print("using log level from settings")
+        log_level = settings['log_level']
+    else:
+        # print("using default DEBUG log level")
+        log_level = logging.DEBUG
+    
     logging.basicConfig(
-        level=logging.INFO,
+        level=log_level,
         format="%(asctime)s - %(levelname)s (%(funcName)s) %(message)s",
         datefmt="%Y-%m-%d %H:%M:%S"
     )
@@ -33,12 +39,20 @@ def setup_logging():
     logging.getLogger().addHandler(file_handler)
     return logging.getLogger()
 
+def load_settings():
+    settings_file_path = "/home/pi/piscripts/brand_new_sort_settings.json"
+    settings = load_from_file(settings_file_path)
+    # print(f"\n$$$ settings loaded $$$\n")
+    # for n in settings:
+    #     print(f"\t*** item:: '{n}' | {settings[n]}")
+    return settings
+
 tooManyMessages = False
 # simplepush notifications
 def ppushitrealgood(msg):
     global tooManyMessages
-    logger.info(f"tooManyMessages = {tooManyMessages}")
-    sp_key = "wL86KC"
+    logger.debug(f"tooManyMessages = {tooManyMessages}")
+    sp_key = settings["simplepush_key"]
     sp_url = "https://api.simplepush.io/send"
     if not tooManyMessages:
         try:
@@ -55,10 +69,10 @@ def ppushitrealgood(msg):
             logger.error(f"error sending message: {msg}")
 
 # save searched ids to cut down on api calls
-def save_cache_to_file(cache_dict, file_path):
+def save_to_file(cache_dict, file_path):
     with open(file_path, "w") as file:
         json.dump(cache_dict, file)
-def load_cache_from_file(file_path):
+def load_from_file(file_path):
     try:
         with open(file_path, "r") as file:
              # Check if the file is empty
@@ -97,11 +111,9 @@ def copy_file(file, type, file_name):
         try:
             os.makedirs(os.path.dirname(f'{destination_path}'), exist_ok=True)
             logger.debug(f"shutil.copy('{source_path}', '{destination_path}')")
-            
-            #output = shutil.copy(f'{source_path}', f'{destination_path}')
-            output = "testing"
-            
+            output = shutil.copy(f'{source_path}', f'{destination_path}')
             msg = ["new stuff", f"new media file: {output}", "newStuff"]
+            logger.info(f"{msg[1]}")
         except FileExistsError as e:
             logger.error(e)
             logger.error(":/")
@@ -115,6 +127,13 @@ def copy_file(file, type, file_name):
     # send simplepush notification
     ppushitrealgood(msg)
 
+def get_tmdb_headers():
+    logger.debug(f"\n&&&settings['tmdb_bearer_token'] = {settings['tmdb_bearer_token']}\n")
+    return {
+        "accept": "application/json",
+        "Authorization": f"Bearer {settings['tmdb_bearer_token']}"
+    }
+
 def search_movie(file):
     filename = Path(file).name
     ext = Path(file).suffix.strip()
@@ -126,14 +145,12 @@ def search_movie(file):
         logger.debug(f"movie: {title} ({year})")
         url = "https://api.themoviedb.org/3/search/movie"
 
-        headers = {
-            "accept": "application/json",
-            "Authorization": "Bearer eyJhbGciOiJIUzI1NiJ9.eyJhdWQiOiJjZTI4M2Y4ZmY2OGMwMTk1MzBjNWY1Y2NmMDQ1ZGUyZCIsInN1YiI6IjVhMjVhNTczYzNhMzY4MGI5ZDBkNTU0NyIsInNjb3BlcyI6WyJhcGlfcmVhZCJdLCJ2ZXJzaW9uIjoxfQ.vFgkfokmICq00bnxaVuPxpNbPuC_SonBW_acltEUm5U"
-        }
+        headers = get_tmdb_headers()
         params = {
             "query": title,
             "year": year
         }
+        
         response = requests.get(url, headers=headers, params=params)
         jsonlist = json.loads(response.text)
         tmdb_name = jsonlist['results'][0]['title']
@@ -147,7 +164,7 @@ def search_movie(file):
 
 def check_show_id(showname):
     cache_file_path = "/home/pi/piscripts/show_id_cache.json"
-    show_id_cache = load_cache_from_file(cache_file_path)
+    show_id_cache = load_from_file(cache_file_path)
 
     for n in show_id_cache:
         logger.debug(f"\t*** showname:: '{n}' | {show_id_cache[n]}")
@@ -162,10 +179,7 @@ def check_show_id(showname):
     # otherwise lookup show id from tmdb & save it
     url = "https://api.themoviedb.org/3/search/tv"
 
-    headers = {
-        "accept": "application/json",
-        "Authorization": "Bearer eyJhbGciOiJIUzI1NiJ9.eyJhdWQiOiJjZTI4M2Y4ZmY2OGMwMTk1MzBjNWY1Y2NmMDQ1ZGUyZCIsInN1YiI6IjVhMjVhNTczYzNhMzY4MGI5ZDBkNTU0NyIsInNjb3BlcyI6WyJhcGlfcmVhZCJdLCJ2ZXJzaW9uIjoxfQ.vFgkfokmICq00bnxaVuPxpNbPuC_SonBW_acltEUm5U"
-    }
+    headers = get_tmdb_headers()
     params = {
         "query": f"{showname}"
     }
@@ -189,7 +203,7 @@ def check_show_id(showname):
 
     # save id to cache file
     show_id_cache[showname] = (tmdb_name, tmdb_id)
-    save_cache_to_file(show_id_cache, cache_file_path)
+    save_to_file(show_id_cache, cache_file_path)
     return f"{tmdb_id}"
 
 def search_tv(file, epdata):
@@ -215,22 +229,29 @@ def search_tv(file, epdata):
         except AttributeError:
             logger.warning(":( can't parse the thing")
 
-        url = "https://api.themoviedb.org/3/tv/series_id/season/season_number/episode/episode_number"
+        # for fuck's sake...season number offsetting (again)
+        if f"{id}" == "12940": # hard knocks
+            season_number = int(season_number) - 2
+            logger.warning(f"offsetting season number for {showname} season {season_number}")
+
         url = f"https://api.themoviedb.org/3/tv/{id}/season/{season_number}/episode/{episode_number}"
-        headers = {
-            "accept": "application/json",
-            "Authorization": "Bearer eyJhbGciOiJIUzI1NiJ9.eyJhdWQiOiJjZTI4M2Y4ZmY2OGMwMTk1MzBjNWY1Y2NmMDQ1ZGUyZCIsInN1YiI6IjVhMjVhNTczYzNhMzY4MGI5ZDBkNTU0NyIsInNjb3BlcyI6WyJhcGlfcmVhZCJdLCJ2ZXJzaW9uIjoxfQ.vFgkfokmICq00bnxaVuPxpNbPuC_SonBW_acltEUm5U"
-        }
+        headers = get_tmdb_headers()
 
         response = requests.get(url, headers=headers)
         tmdb_data = json.loads(response.text)
-        episode_name = tmdb_data['name']
-        final_file_name = f"{cleaned_showname} {episode} - {episode_name}{ext}"
-        # gotta include /show_name/season/ folders in filename for tv shows
-        show_path = f"{cleaned_showname}/Season {season_number}/"
-        path_for_tv = f"{show_path}{final_file_name}"
-        # os.path.isfile(os.path.join(destination_path, file_name)
-        copy_file(file, "tv", path_for_tv)
+        # logger.debug(f"*** tmdb_data\n{tmdb_data}")
+        if 'success' in tmdb_data and not tmdb_data['success']:
+            msg = ["404", f"{tmdb_data['status_message']} {showname} {episode}", "404"]
+            logger.error(f"Error: {msg[1]}")
+            ppushitrealgood(msg)
+        else:
+            episode_name = tmdb_data['name']
+            final_file_name = f"{cleaned_showname} {episode} - {episode_name}{ext}"
+            # gotta include /show_name/season/ folders in filename for tv shows
+            show_path = f"{cleaned_showname}/Season {season_number}/"
+            path_for_tv = f"{show_path}{final_file_name}"
+            # os.path.isfile(os.path.join(destination_path, file_name)
+            copy_file(file, "tv", path_for_tv)
 
 
 def process_file(file):
@@ -312,8 +333,18 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Check if the given path is a file or a directory.")
     parser.add_argument("-p", "--path", default="/mnt/torrents/completed", help="The file path to check (default: /mnt/torrents/completed)")
     args, unknown_args = parser.parse_known_args()
-
+    
+    # try to load settings file
+    settings = load_settings()
+    
     logger = setup_logging()
+    
+    # save id to cache file
+    settings_file_path = "/home/pi/piscripts/brand_new_sort_settings.json"
+    
+    # save_to_file(settings, settings_file_path)
+    
+    # do the thing
     check_file_or_directory(args.path, *unknown_args)
 
 
