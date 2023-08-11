@@ -13,9 +13,11 @@ import requests
 
 # TODO
 # multi-part episodes
-# settings stuff
+# overwrite mode
+
 # piscripts/brand_new_sort.py -p cp/'My.Adventures.with.Superman.S01E04.1080p.WEB.h264-EDITH[eztv.re].mkv'
 # piscripts/brand_new_sort.py -p cp/'Star.Trek.Strange.New.Worlds.S02E10.1080p.WEB.h264-ETHEL[eztv.re].mkv'
+# piscripts/brand_new_sort.py -p cp/'Elemental 2023 1080p V2 HDTS X264 Will1869'
 
 def setup_logging():
     log_file = "/home/pi/piscripts/brand_new_sort.log"
@@ -60,10 +62,10 @@ def ppushitrealgood(msg):
             msg_title = msg[0]
             msg_body = msg[1]
             msg_event = msg[2]
-            logger.debug("attempting to send message...")
             msgdata = parse.urlencode({'key': sp_key, 'title': f'{msg_title}', 'msg': f'{msg_body}', 'event': f'{msg_event}'}).encode()
             req = request.Request(sp_url, data=msgdata)
-            logger.debug(request.urlopen(req));
+            response = request.urlopen(req)
+            logger.debug(f"response={response}")
         except IndexError as e:
             logger.error({e})
             logger.error(f"error sending message: {msg}")
@@ -87,7 +89,7 @@ def load_from_file(file_path):
         return {}
 
 
-def copy_file(file, type, file_name):
+def copy_file(file, type, file_name, message_body):
     # fix source path for copy
     source_path = args.path
     if args.path.startswith("cp/"):
@@ -99,11 +101,14 @@ def copy_file(file, type, file_name):
 
     # set destination path
     destination_path = ""
+    item_label = ""
     if type == "tv":
         # include show & season folders
         destination_path = f"/mnt/tv/{file_name}"
+        item_label = "New Episode"
     elif type == "movie":
         destination_path = f"/mnt/movies/{file_name}"
+        item_label = "New Movie"
     logger.debug(f"destination_path = '{destination_path}' -- exists:{os.path.exists(f'{destination_path}')}")
     
     # sanity check & copy file
@@ -112,7 +117,8 @@ def copy_file(file, type, file_name):
             os.makedirs(os.path.dirname(f'{destination_path}'), exist_ok=True)
             logger.debug(f"shutil.copy('{source_path}', '{destination_path}')")
             output = shutil.copy(f'{source_path}', f'{destination_path}')
-            msg = ["new stuff", f"new media file: {output}", "newStuff"]
+            # output = f"test mode"
+            msg = [f"{os.path.basename(file_name).rsplit('.', 1)[0]}", f"{message_body}", f"{item_label}"]
             logger.info(f"{msg[1]}")
         except FileExistsError as e:
             logger.error(e)
@@ -157,7 +163,9 @@ def search_movie(file):
         year = jsonlist['results'][0]['release_date'][:4]
         final_file_name = f"{tmdb_name} ({year}){ext}"
         logger.info(f"final file name: '{final_file_name}'")
-        copy_file(file, "movie", final_file_name)
+        # assemble message for notification
+        message_body = f"{jsonlist['results'][0]['overview']}"
+        copy_file(file, "movie", final_file_name, message_body)
     except AttributeError:
         logger.warning(f"can't parse movie name/year for: {filename}")
 
@@ -250,8 +258,8 @@ def search_tv(file, epdata):
             # gotta include /show_name/season/ folders in filename for tv shows
             show_path = f"{cleaned_showname}/Season {season_number}/"
             path_for_tv = f"{show_path}{final_file_name}"
-            # os.path.isfile(os.path.join(destination_path, file_name)
-            copy_file(file, "tv", path_for_tv)
+            message_body = f"{tmdb_data['overview']}"
+            copy_file(file, "tv", path_for_tv, message_body)
 
 
 def process_file(file):
