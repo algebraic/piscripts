@@ -14,10 +14,7 @@ import requests
 # TODO
 # multi-part episodes
 # overwrite mode
-
-# piscripts/brand_new_sort.py -p cp/'My.Adventures.with.Superman.S01E04.1080p.WEB.h264-EDITH[eztv.re].mkv'
-# piscripts/brand_new_sort.py -p cp/'Star.Trek.Strange.New.Worlds.S02E10.1080p.WEB.h264-ETHEL[eztv.re].mkv'
-# piscripts/brand_new_sort.py -p cp/'Elemental 2023 1080p V2 HDTS X264 Will1869'
+# finish season # offsetting
 
 def setup_logging():
     log_file = "/home/pi/piscripts/brand_new_sort.log"
@@ -44,12 +41,17 @@ def setup_logging():
 def load_settings():
     settings_file_path = "/home/pi/piscripts/brand_new_sort_settings.json"
     settings = load_from_file(settings_file_path)
-    # print(f"\n$$$ settings loaded $$$\n")
-    # for n in settings:
-    #     print(f"\t*** item:: '{n}' | {settings[n]}")
+    print(f"\n$$$ settings loaded $$$\n")
+    global media_extensions
+    global subtitle_extensions
+    media_extensions = settings["media_extensions"]
+    subtitle_extensions = settings["subtitle_extensions"]
+    for n in settings:
+        print(f"\t*** item:: '{n}' | {settings[n]}")
     return settings
 
 tooManyMessages = False
+
 # simplepush notifications
 def ppushitrealgood(msg):
     global tooManyMessages
@@ -123,15 +125,21 @@ def copy_file(file, type, file_name, message_body):
         except FileExistsError as e:
             logger.error(e)
             logger.error(":/")
-            msg = ["ERROR", f"error trying to copy '{source_path}' to '{destination_path}", "fileError"]
+            msg = ["ERROR", f"error trying to copy '{source_path}' to '{destination_path}", "file error"]
         finally:
             logger.debug(f"copy result:: '{output}'")
     else:
         logger.warning(f"file already exists in destination: {destination_path}")
-        msg = ["duplicate", f"file already exists in destination: {destination_path}", "duplicateMedia"]
+        msg = ["duplicate", f"You already have {file}", "duplicate media"]
 
-    # send simplepush notification
-    ppushitrealgood(msg)
+    # send simplepush notification (omit entirely for subtitle files)
+    ext = os.path.splitext(Path(file).name)[1]
+    global subtitle_extensions
+    if ext not in subtitle_extensions:
+        logger.debug(f"not a subtitle file, proceed normally: {ext}")
+        ppushitrealgood(msg)
+    else:
+        logger.debug(f"no messaging for subtitle files: {ext}")
 
 def get_tmdb_headers():
     logger.debug(f"\n&&&settings['tmdb_bearer_token'] = {settings['tmdb_bearer_token']}\n")
@@ -162,12 +170,13 @@ def search_movie(file):
         tmdb_name = jsonlist['results'][0]['title']
         year = jsonlist['results'][0]['release_date'][:4]
         final_file_name = f"{tmdb_name} ({year}){ext}"
-        logger.info(f"final file name: '{final_file_name}'")
+        logger.debug(f"final file name: '{final_file_name}'")
         # assemble message for notification
         message_body = f"{jsonlist['results'][0]['overview']}"
         copy_file(file, "movie", final_file_name, message_body)
-    except AttributeError:
+    except AttributeError as e:
         logger.warning(f"can't parse movie name/year for: {filename}")
+        logger.error(e)
 
 
 def check_show_id(showname):
@@ -282,8 +291,8 @@ def check_file(file):
     # logger.debug(f"checking file: {file}")
     ext = Path(file).suffix.strip()
     name = Path(file).name
-    media_extensions = {".mp4", ".mkv", ".avi", ".mov", ".wmv"}
-    subtitle_extensions = {".srt", ".sub", ".ass", ".vtt"}
+    global media_extensions
+    global subtitle_extensions
 
     if ext.lower() in media_extensions:
         logger.info(f"process media file: {name}")
@@ -373,15 +382,3 @@ if __name__ == "__main__":
 # %Z: Torrent size (bytes)
 # %T: Current tracker
 # %I: Info hash
-
-
-# zj: fucking subtitles...
-#    subs will only ever be in a directory structure, either in the passed filepath folder or a subfolder "Subs" or something
-#    as long as they're named right, then everything is kosher with the regular process_file function
-#    
-#   
-#   
-#   
-#   
-#   
-#   
