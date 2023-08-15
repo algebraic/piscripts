@@ -41,13 +41,13 @@ def setup_logging():
 def load_settings():
     settings_file_path = "/home/pi/piscripts/brand_new_sort_settings.json"
     settings = load_from_file(settings_file_path)
-    print(f"\n$$$ settings loaded $$$\n")
+    # print(f"\n$$$ settings loaded $$$\n")
     global media_extensions
     global subtitle_extensions
     media_extensions = settings["media_extensions"]
     subtitle_extensions = settings["subtitle_extensions"]
-    for n in settings:
-        print(f"\t*** item:: '{n}' | {settings[n]}")
+    # for n in settings:
+    #     print(f"\t*** item:: '{n}' | {settings[n]}")
     return settings
 
 tooManyMessages = False
@@ -181,6 +181,7 @@ def search_movie(file):
 
 def check_show_id(showname):
     cache_file_path = "/home/pi/piscripts/show_id_cache.json"
+    global show_id_cache
     show_id_cache = load_from_file(cache_file_path)
 
     for n in show_id_cache:
@@ -233,12 +234,16 @@ def search_tv(file, epdata):
     logger.debug(f"searching tv shows for: '{cleaned_showname}' - '{episode}'")
 
     id = check_show_id(cleaned_showname)
+    # for n in show_id_cache:
+    #     print(f"\t^^^ show_id_cache[{n}] = {show_id_cache[n]}")
+    final_show_name = show_id_cache[cleaned_showname][0]
+    
     if id == 0:
         logger.error(f"nothing found on tmdb for '{cleaned_showname}'")
         msg = ["TMDB 404", f"nothing found on tmdb for '{cleaned_showname}'", "not found"]
         ppushitrealgood(msg)
     else:
-        logger.debug(f"show id for {cleaned_showname} = {id}")
+        logger.debug(f"show id for {cleaned_showname} = {id} ({final_show_name})")
         try:
             nums = re.search(r"S(\d+)E(\d+)", episode, re.IGNORECASE)
             season_number = nums.group(1)
@@ -247,9 +252,12 @@ def search_tv(file, epdata):
             logger.warning(":( can't parse the thing")
 
         # for fuck's sake...season number offsetting (again)
-        if f"{id}" == "12940": # hard knocks
-            season_number = int(season_number) - 2
-            logger.warning(f"offsetting season number for {showname} season {season_number}")
+        season_offsets = settings.get("season_offset", [])
+        if id in season_offsets:
+            index = season_offsets.index(id)
+            offset_value = season_offsets[index + 1] if index < len(season_offsets) - 1 else None
+            season_number = int(season_number) + int(offset_value)
+            logger.warning(f"offsetting season number for {final_show_name} by {offset_value} to {season_number}")
 
         url = f"https://api.themoviedb.org/3/tv/{id}/season/{season_number}/episode/{episode_number}"
         headers = get_tmdb_headers()
@@ -263,9 +271,9 @@ def search_tv(file, epdata):
             ppushitrealgood(msg)
         else:
             episode_name = tmdb_data['name']
-            final_file_name = f"{cleaned_showname} {episode} - {episode_name}{ext}"
+            final_file_name = f"{final_show_name} {episode} - {episode_name}{ext}"
             # gotta include /show_name/season/ folders in filename for tv shows
-            show_path = f"{cleaned_showname}/Season {season_number}/"
+            show_path = f"{final_show_name}/Season {season_number}/"
             path_for_tv = f"{show_path}{final_file_name}"
             message_body = f"{tmdb_data['overview']}"
             copy_file(file, "tv", path_for_tv, message_body)
@@ -347,8 +355,8 @@ def check_file_or_directory(file_path, *args):
 
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser(description="Check if the given path is a file or a directory.")
-    parser.add_argument("-p", "--path", default="/mnt/torrents/completed", help="The file path to check (default: /mnt/torrents/completed)")
+    parser = argparse.ArgumentParser(description="Media sorting script")
+    parser.add_argument("-p", "--path", default="/mnt/torrents/completed/nothing", help="The file path to check (default: /mnt/torrents/completed)")
     args, unknown_args = parser.parse_known_args()
     
     # try to load settings file
