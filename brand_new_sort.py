@@ -152,30 +152,56 @@ def search_movie(file):
     filename = Path(file).name
     ext = Path(file).suffix.strip()
     logger.debug(f"search movies for: {filename}")
+
     try:
         yr = re.search(r'[\(|\[|" "|\.](\d{4})[\)|\]|" "|\.]', filename, re.IGNORECASE)
         title = filename.split(yr.group(0), 1)[0].strip().replace(".", " ")
         year = yr.group(1)
         logger.debug(f"movie: {title} ({year})")
-        url = "https://api.themoviedb.org/3/search/movie"
 
         headers = get_tmdb_headers()
-        params = {
-            "query": title,
-            "year": year
-        }
+
+        if args.id:
+            # do the force id
+            print(f"%%% force id: {args.id}")
+            url = f"https://api.themoviedb.org/3/movie/{args.id}"
+            params = {}
+        else:
+            url = "https://api.themoviedb.org/3/search/movie"
+            params = {
+                "query": title, 
+                "year": year
+            }
         
         response = requests.get(url, headers=headers, params=params)
         jsonlist = json.loads(response.text)
-        tmdb_name = jsonlist['results'][0]['title']
-        year = jsonlist['results'][0]['release_date'][:4]
-        final_file_name = f"{tmdb_name} ({year}){ext}"
+        # print(f"#################\n{jsonlist}\n")
+        if args.id:
+            # stuff
+            tmdb_name = jsonlist['title']
+            year = jsonlist['release_date'][:4]
+            final_file_name = f"{tmdb_name} ({year}){ext}"
+            message_body = f"{jsonlist['overview']}"
+        else:
+            if int(jsonlist['total_results']) == 0:
+                if ext.lower() not in subtitle_extensions:
+                    msg = ["TMDB 404", f"nothing found on tmdb for '{title} ({year})'", "not found"]
+                    logger.warning(f"{msg[1]}")
+                    ppushitrealgood(msg)
+            else:
+                tmdb_name = jsonlist['results'][0]['title']
+                year = jsonlist['results'][0]['release_date'][:4]
+                final_file_name = f"{tmdb_name} ({year}){ext}"
+                message_body = f"{jsonlist['results'][0]['overview']}"
+
         logger.debug(f"final file name: '{final_file_name}'")
         # assemble message for notification
-        message_body = f"{jsonlist['results'][0]['overview']}"
         copy_file(file, "movie", final_file_name, message_body)
     except AttributeError as e:
         logger.warning(f"can't parse movie name/year for: {filename}")
+        logger.error(e)
+    except IndexError as e:
+        logger.warning(f"something missing from jsonlist\n{jsonlist}")
         logger.error(e)
 
 
@@ -357,6 +383,7 @@ def check_file_or_directory(file_path, *args):
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Media sorting script")
     parser.add_argument("-p", "--path", default="/mnt/torrents/completed/nothing", help="The file path to check (default: /mnt/torrents/completed)")
+    parser.add_argument("-i", "--id", help="force a movie to use the specified tmdb id")
     args, unknown_args = parser.parse_known_args()
     
     # try to load settings file
