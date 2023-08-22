@@ -14,7 +14,6 @@ import requests
 # TODO
 # multi-part episodes
 # overwrite mode
-# finish season # offsetting
 
 def setup_logging():
     log_file = "/home/pi/piscripts/brand_new_sort.log"
@@ -163,7 +162,7 @@ def search_movie(file):
 
         if args.id:
             # do the force id
-            print(f"%%% force id: {args.id}")
+            logger.debug(f"forcing use of tmdb id {args.id}")
             url = f"https://api.themoviedb.org/3/movie/{args.id}"
             params = {}
         else:
@@ -175,9 +174,8 @@ def search_movie(file):
         
         response = requests.get(url, headers=headers, params=params)
         jsonlist = json.loads(response.text)
-        # print(f"#################\n{jsonlist}\n")
+        
         if args.id:
-            # stuff
             tmdb_name = jsonlist['title']
             year = jsonlist['release_date'][:4]
             final_file_name = f"{tmdb_name} ({year}){ext}"
@@ -203,6 +201,8 @@ def search_movie(file):
     except IndexError as e:
         logger.warning(f"something missing from jsonlist\n{jsonlist}")
         logger.error(e)
+    except KeyError as e:
+        logger.warning(f"given force-id appears to be invalid - {jsonlist['status_message']}")
 
 
 def check_show_id(showname):
@@ -277,7 +277,7 @@ def search_tv(file, epdata):
         except AttributeError:
             logger.warning(":( can't parse the thing")
 
-        # for fuck's sake...season number offsetting (again)
+        # season number offsetting
         season_offsets = settings.get("season_offset", [])
         if id in season_offsets:
             index = season_offsets.index(id)
@@ -290,7 +290,7 @@ def search_tv(file, epdata):
 
         response = requests.get(url, headers=headers)
         tmdb_data = json.loads(response.text)
-        # logger.debug(f"*** tmdb_data\n{tmdb_data}")
+        
         if 'success' in tmdb_data and not tmdb_data['success']:
             msg = ["404", f"{tmdb_data['status_message']} {showname} {episode}", "404"]
             logger.error(f"Error: {msg[1]}")
