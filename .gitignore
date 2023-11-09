@@ -1,8 +1,7 @@
 .history/*
-*.log
+*.log*
 *.pyc
 settings.py
 old_stuff/sort.config.json
-show_id_cache.json
 show_id_cache.json
 brand_new_sort_settings.json

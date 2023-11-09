@@ -16,7 +16,7 @@ import requests
 # overwrite mode
 
 def setup_logging():
-    log_file = "/home/pi/piscripts/brand_new_sort.log"
+    log_file = "/var/log/zort.log"
     if "log_level" in settings:
         # print("using log level from settings")
         log_level = settings['log_level']
@@ -210,8 +210,8 @@ def check_show_id(showname):
     global show_id_cache
     show_id_cache = load_from_file(cache_file_path)
 
-    for n in show_id_cache:
-        logger.debug(f"\t*** showname:: '{n}' | {show_id_cache[n]}")
+    # for n in show_id_cache:
+    #     logger.debug(f"\t*** showname:: '{n}' | {show_id_cache[n]}")
          
     if showname in show_id_cache:
         # return id saved locally
@@ -263,7 +263,6 @@ def search_tv(file, epdata):
     # for n in show_id_cache:
     #     print(f"\t^^^ show_id_cache[{n}] = {show_id_cache[n]}")
     final_show_name = show_id_cache[cleaned_showname][0]
-    
     if id == 0:
         logger.error(f"nothing found on tmdb for '{cleaned_showname}'")
         msg = ["TMDB 404", f"nothing found on tmdb for '{cleaned_showname}'", "not found"]
