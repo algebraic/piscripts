@@ -93,7 +93,7 @@ def load_from_file(file_path):
 def copy_file(file, type, file_name, message_body):
     # fix source path for copy
     source_path = args.path
-    if args.path.startswith("cp/"):
+    if args.path.startswith("cp/"): # helpful alias for the cp mapping
         source_path = f"/mnt/torrents/completed/{args.path[3:]}"
     if not os.path.isfile(f'{source_path}'):
         # directory-torrents need the media filename appended back
@@ -116,24 +116,37 @@ def copy_file(file, type, file_name, message_body):
     logger.debug("$$$ os.path.isfile(f'{source_path}') = " + str(os.path.isfile(f'{source_path}')))
     logger.debug("$$$ os.path.exists(f'{source_path}') = " + str(os.path.exists(f'{source_path}')))
     logger.debug("$$$ os.path.exists(f'{destination_path}') = " + str(os.path.exists(f'{destination_path}')))
-             
-    if os.path.isfile(f'{source_path}') and os.path.exists(f'{source_path}') and not os.path.exists(f'{destination_path}'):
-        try:
-            os.makedirs(os.path.dirname(f'{destination_path}'), exist_ok=True)
-            logger.debug(f"shutil.copy('{source_path}', '{destination_path}')")
-            output = shutil.copy(f'{source_path}', f'{destination_path}')
-            # output = f"test mode"
-            msg = [f"{os.path.basename(file_name).rsplit('.', 1)[0]}", f"{message_body}", f"{item_label}"]
-            logger.info(f"{msg[1]}")
-        except FileExistsError as e:
-            logger.error(e)
-            logger.error(":/")
-            msg = ["ERROR", f"error trying to copy '{source_path}' to '{destination_path}", "file error"]
-        finally:
-            logger.debug(f"copy result:: '{output}'")
+    
+    if os.path.exists(f'{destination_path}'):
+        if args.overwrite:
+            try:
+                output = shutil.copy2(source_path, destination_path)
+                msg = [f"{os.path.basename(file_name).rsplit('.', 1)[0]}" + " (overwrite)", f"{message_body}", "overwrite"]
+                logger.info(f"{msg[1]}")
+            except FileExistsError as e:
+                logger.error(e)
+                logger.error(":/")
+                msg = ["ERROR", f"error trying to copy '{source_path}' to '{destination_path}", "file error"]
+            finally:
+                logger.debug(f"copy result:: '{output}'")
+        else:
+            logger.warning(f"file already exists in destination: {destination_path}")
+            msg = ["duplicate media", f"You already have {file}", "duplicate"]
     else:
-        logger.warning(f"file already exists in destination: {destination_path}")
-        msg = ["duplicate", f"You already have {file}", "duplicate media"]
+        if os.path.isfile(f'{source_path}') and os.path.exists(f'{source_path}'):
+            try:
+                os.makedirs(os.path.dirname(f'{destination_path}'), exist_ok=True)
+                logger.debug(f"shutil.copy('{source_path}', '{destination_path}')")
+                output = shutil.copy(f'{source_path}', f'{destination_path}')
+                msg = [f"{os.path.basename(file_name).rsplit('.', 1)[0]}", f"{message_body}", f"{item_label}"]
+                logger.info(f"{msg[1]}")
+            except FileExistsError as e:
+                logger.error(e)
+                logger.error(":/")
+                msg = ["ERROR", f"error trying to copy '{source_path}' to '{destination_path}", "file error"]
+            finally:
+                logger.debug(f"copy result:: '{output}'")
+        
 
     # send simplepush notification (omit entirely for subtitle files)
     ext = os.path.splitext(Path(file).name)[1]
@@ -391,8 +404,10 @@ def check_file_or_directory(file_path, *args):
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Media sorting script")
-    parser.add_argument("-p", "--path", default="/mnt/torrents/completed/nothing", help="The file path to check (default: /mnt/torrents/completed)")
-    parser.add_argument("-i", "--id", help="force a movie to use the specified tmdb id")
+    parser.add_argument("-p", "--path", default="/mnt/torrents/completed/nothing", help="The file path to check (defaults to '/mnt/torrents/completed/nothing' for safety)")
+    parser.add_argument("-i", "--id", help="force a movie (ONLY a movie) to use the specified tmdb id")
+    parser.add_argument("-o", "--overwrite", action="store_true", help="overwrite mode, replaces an existing file")
+
     args, unknown_args = parser.parse_known_args()
     
     # try to load settings file
