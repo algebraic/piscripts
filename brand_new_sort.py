@@ -113,6 +113,10 @@ def copy_file(file, type, file_name, message_body):
     logger.debug(f"destination_path = '{destination_path}' -- exists:{os.path.exists(f'{destination_path}')}")
     
     # sanity check & copy file
+    logger.debug("$$$ os.path.isfile(f'{source_path}') = " + str(os.path.isfile(f'{source_path}')))
+    logger.debug("$$$ os.path.exists(f'{source_path}') = " + str(os.path.exists(f'{source_path}')))
+    logger.debug("$$$ os.path.exists(f'{destination_path}') = " + str(os.path.exists(f'{destination_path}')))
+             
     if os.path.isfile(f'{source_path}') and os.path.exists(f'{source_path}') and not os.path.exists(f'{destination_path}'):
         try:
             os.makedirs(os.path.dirname(f'{destination_path}'), exist_ok=True)
@@ -274,7 +278,8 @@ def search_tv(file, epdata):
             season_number = nums.group(1)
             episode_number = nums.group(2)
         except AttributeError:
-            logger.warning(":( can't parse the thing")
+            logger.warning(f"can't parse epdata: '{episode}'")
+            
 
         # season number offsetting
         season_offsets = settings.get("season_offset", [])
@@ -309,8 +314,13 @@ def process_file(file):
     filename = Path(file).name
     # try 'S##E##-E##' first, then '##x##' - can add more variants as needed
     epdata = re.search(r'(S(\d+)E(\d+)(?:-E(\d{2})|-(\d{2}))?)', filename, re.IGNORECASE)
+
     if (str(epdata) == "None"):
         epdata = re.search(r'((\d{2})X(\d{2})(?:-E(\d{2})|-(\d{2}))?)', filename, re.IGNORECASE)
+        if "daily.show" in filename.lower():
+            logger.debug("$$ FOUND THE DAILY SHOW!!!")
+            epdata = re.search(r'(\d{4}\.\d{2}\.\d{2})', filename)
+
     if (str(epdata) == "None"):
         # still no episode data? treat as a movie
         logger.debug("no episode data found, treat as a movie")
