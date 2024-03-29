@@ -94,7 +94,7 @@ def copy_file(file, type, file_name, message_body):
     # fix source path for copy
     source_path = args.path
     if args.path.startswith("cp/"): # helpful alias for the cp mapping
-        source_path = f"/mnt/torrents/completed/{args.path[3:]}"
+        source_path = f"/mnt/torrents/completed/{args.path[3:]}" if ' ' not in args.path[3:] else f"/mnt/torrents/completed/'{args.path[3:]}'"
     if not os.path.isfile(f'{source_path}'):
         # directory-torrents need the media filename appended back
         source_path += f"/{Path(file).name}"
