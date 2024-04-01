@@ -110,13 +110,9 @@ def copy_file(file, type, file_name, message_body):
     elif type == "movie":
         destination_path = f"/mnt/movies/{file_name}"
         item_label = "New Movie"
-    logger.debug(f"destination_path = '{destination_path}' -- exists:{os.path.exists(f'{destination_path}')}")
+    logger.debug(f"destination_path = {destination_path} -- exists:{os.path.exists(destination_path)}")
     
     # sanity check & copy file
-    logger.debug("$$$ os.path.isfile(f'{source_path}') = " + str(os.path.isfile(f'{source_path}')))
-    logger.debug("$$$ os.path.exists(f'{source_path}') = " + str(os.path.exists(f'{source_path}')))
-    logger.debug("$$$ os.path.exists(f'{destination_path}') = " + str(os.path.exists(f'{destination_path}')))
-    
     if os.path.exists(f'{destination_path}'):
         if args.overwrite:
             try:
@@ -133,7 +129,8 @@ def copy_file(file, type, file_name, message_body):
             logger.warning(f"file already exists in destination: {destination_path}")
             msg = ["duplicate media", f"You already have {file}", "duplicate"]
     else:
-        if os.path.isfile(f'{source_path}') and os.path.exists(f'{source_path}'):
+        source_path = source_path.replace("'", "")
+        if os.path.isfile(source_path) and os.path.exists(source_path):
             try:
                 os.makedirs(os.path.dirname(f'{destination_path}'), exist_ok=True)
                 logger.debug(f"shutil.copy('{source_path}', '{destination_path}')")
