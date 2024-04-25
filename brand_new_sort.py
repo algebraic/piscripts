@@ -94,11 +94,13 @@ def copy_file(file, type, file_name, message_body):
     # fix source path for copy
     source_path = args.path
     if args.path.startswith("cp/"): # helpful alias for the cp mapping
-        source_path = f"/mnt/torrents/completed/{args.path[3:]}" if ' ' not in args.path[3:] else f"/mnt/torrents/completed/'{args.path[3:]}'"
-    if not os.path.isfile(f'{source_path}'):
+        source_path = f"/mnt/torrents/completed/{args.path[3:]}"
+        
+    if not os.path.isfile(source_path):
         # directory-torrents need the media filename appended back
         source_path += f"/{Path(file).name}"
-    logger.debug(f"source_path = '{source_path}' -- isfile:{os.path.isfile(f'{source_path}')} -- exists: {os.path.exists(f'{source_path}')}")
+        
+    logger.debug(f"source_path = '{source_path}' -- isfile:{os.path.isfile(source_path)} -- exists: {os.path.exists(source_path)}")
 
     # set destination path
     destination_path = ""
@@ -113,7 +115,7 @@ def copy_file(file, type, file_name, message_body):
     logger.debug(f"destination_path = {destination_path} -- exists:{os.path.exists(destination_path)}")
     
     # sanity check & copy file
-    if os.path.exists(f'{destination_path}'):
+    if os.path.exists(destination_path):
         if args.overwrite:
             try:
                 output = shutil.copy2(source_path, destination_path)
